@@ -16,7 +16,11 @@
 
 ---
 
-Claude Code is brilliant — but every subagent it spawns (searching, reading dozens of files, mechanical edits, running tests) also burns **Opus**. On a Pro/Max plan you hit your weekly limit fast; on API billing you pay Opus prices for work a cheaper model does just as well.
+> **You wouldn't put ten $300k senior engineers on grunt work.** You'd keep *one* sharp senior to plan and review, hand the legwork to cheap interns, and have the senior check it before it ships.
+>
+> **That's exactly this setup.** **Opus is your senior** — on the plan you already pay for — thinking, delegating, and reviewing. **DeepSeek v4 subagents are the interns**: fast, cheap, and doing the actual grinding under the senior's supervision. Senior judgment on intern-priced labor, in one Claude Code session.
+
+Claude Code is brilliant — but every subagent it spawns (searching, reading dozens of files, mechanical edits, running tests) also burns **Opus** — like paying senior rates for intern work. On a Pro/Max plan you hit your weekly limit fast; on API billing you pay Opus prices for work a cheaper model does just as well.
 
 This fixes that **without giving anything up**. A tiny proxy routes each request by its model id:
 
