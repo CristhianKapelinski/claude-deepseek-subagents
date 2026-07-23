@@ -15,21 +15,21 @@
 
 <h1 align="center">claude-deepseek-subagents</h1>
 
-<p align="center"><b>Keep Opus as your orchestrator on the plan you already pay for.<br>Let DeepSeek v4 do the grunt work as real, native subagents.</b></p>
+<p align="center"><b>Keep Claude as your orchestrator on the plan you already pay for.<br>Let DeepSeek v4 do the grunt work as real, native subagents.</b></p>
 
 ---
 
 > **You wouldn't put ten $300k senior engineers on grunt work.** You'd keep *one* sharp senior to plan and review, hand the legwork to cheap interns, and have the senior check it before it ships.
 >
-> **That's exactly this setup.** **Opus is your senior** — on the plan you already pay for — thinking, delegating, and reviewing. **DeepSeek v4 subagents are the interns**: fast, cheap, and doing the actual grinding under the senior's supervision. Senior judgment on intern-priced labor, in one Claude Code session.
+> **That's exactly this setup.** **Claude is your senior** — on the plan you already pay for — thinking, delegating, and reviewing. **DeepSeek v4 subagents are the interns**: fast, cheap, and doing the actual grinding under the senior's supervision. Senior judgment on intern-priced labor, in one Claude Code session.
 
-Claude Code is brilliant — but every subagent it spawns (searching, reading dozens of files, mechanical edits, running tests) also burns **Opus** — like paying senior rates for intern work. On a Pro/Max plan you hit your weekly limit fast; on API billing you pay Opus prices for work a cheaper model does just as well.
+Claude Code is brilliant — but every subagent it spawns (searching, reading dozens of files, mechanical edits, running tests) also burns **Claude** — like paying senior rates for intern work. On a Pro/Max plan you hit your weekly limit fast; on API billing you pay Claude prices for work a cheaper model does just as well.
 
 This fixes that **without giving anything up**. A tiny proxy routes each request by its model id:
 
-- your **main agent stays on Opus, on your subscription** — untouched, same login, same quota;
+- your **main agent stays on Claude, on your subscription** — untouched, same login, same quota;
 - **subagents run on DeepSeek** — as *real* Claude Code subagents with the full tool loop (read, grep, bash, edit), not a blind "ask an API" helper;
-- Opus then **verifies** their work.
+- Claude then **verifies** their work.
 
 One session. One command to install. Nothing else in your setup changes.
 
@@ -39,30 +39,30 @@ There are a few obvious ways to bolt a cheaper model onto Claude Code. Each one 
 
 | Approach | Main agent | Subagents | Keeps your subscription | Subagents have tools | Extra moving parts |
 |---|:---:|:---:|:---:|:---:|:---:|
-| **Plain Claude Code** | Opus | Opus 💸 | ✅ | ✅ | none |
+| **Plain Claude Code** | Claude | Claude 💸 | ✅ | ✅ | none |
 | `ANTHROPIC_BASE_URL` → DeepSeek | DeepSeek ❌ | DeepSeek | ❌ (whole CLI leaves Claude) | ✅ | env only |
-| Full gateway / router | Opus\* | any | ⚠️ usually drops to API billing | ✅ | a gateway for **all** traffic |
-| MCP "ask DeepSeek" tool | Opus | — (a text call) | ✅ | ❌ blind, no files | an MCP server |
-| **→ this project** | **Opus** | **DeepSeek** | **✅ untouched** | **✅ full loop** | **one ~90-line local proxy** |
+| Full gateway / router | Claude\* | any | ⚠️ usually drops to API billing | ✅ | a gateway for **all** traffic |
+| MCP "ask DeepSeek" tool | Claude | — (a text call) | ✅ | ❌ blind, no files | an MCP server |
+| **→ this project** | **Claude** | **DeepSeek** | **✅ untouched** | **✅ full loop** | **one ~90-line local proxy** |
 
 The catch everyone runs into is that `ANTHROPIC_BASE_URL` is **global** — point it anywhere and your *main* agent leaves Anthropic too. The usual conclusion is "a proxy breaks your subscription."
 
-**It doesn't have to.** This proxy only rewrites auth for `deepseek-*` requests. For `claude-*` requests it forwards Claude Code's own headers **untouched**, so your subscription OAuth token reaches Anthropic exactly as if the proxy weren't there. That one detail is what lets Opus and DeepSeek run side by side in the same session — Opus on your plan, DeepSeek on its cheap API.
+**It doesn't have to.** This proxy only rewrites auth for `deepseek-*` requests. For `claude-*` requests it forwards Claude Code's own headers **untouched**, so your subscription OAuth token reaches Anthropic exactly as if the proxy weren't there. That one detail is what lets Claude and DeepSeek run side by side in the same session — Claude on your plan, DeepSeek on its cheap API.
 
 ## How it works
 
 ```mermaid
 flowchart LR
-    U([You + Opus]) --> CC[Claude Code]
+    U([You + Claude]) --> CC[Claude Code]
     CC -- ANTHROPIC_BASE_URL --> R{{"router · 127.0.0.1:8080<br/>reads body.model"}}
-    R -- "model: claude-*<br/>headers untouched" --> A["Anthropic<br/>Opus 4.8 (1M)<br/>your subscription"]
+    R -- "model: claude-*<br/>headers untouched" --> A["Anthropic<br/>your Claude model<br/>your subscription"]
     R -- "model: deepseek-*<br/>auth swapped" --> D["DeepSeek<br/>ds-flash / ds-pro<br/>full agent loop"]
-    D -. results .-> V[Opus verifies] -.-> CC
+    D -. results .-> V[Claude verifies] -.-> CC
 ```
 
 - The **proxy** (`proxy.mjs`, ~90 lines, zero deps) is the whole trick. It reads `body.model` and forwards to the right upstream, swapping the `Authorization` header only for DeepSeek.
 - The **subagents** are ordinary named Claude Code agents (`~/.claude/agents/ds-flash.md`, `ds-pro.md`) whose `model:` frontmatter is a `deepseek-*` id. No plugin, no patch — the routing lives entirely in the proxy.
-- The **launcher** `claude-ds` starts the proxy, pins the main model to Opus 1M, and injects a policy telling the orchestrator to delegate to DeepSeek by default and verify the results.
+- The **launcher** `claude-ds` starts the proxy, pins the main model to Claude (default: Opus 4.8 1M), and injects a policy telling the orchestrator to delegate to DeepSeek by default and verify the results.
 
 ## Install
 
@@ -109,7 +109,7 @@ ds-proxy log         # live — every call prints  model -> DEEPSEEK | anthropic
 
 | | Model | Endpoint | Billed to |
 |---|---|---|---|
-| Main / orchestrator | Opus 4.8 (1M) | Anthropic | your subscription |
+| Main / orchestrator | Claude — default Opus 4.8 (1M) | Anthropic | your subscription |
 | `ds-flash` (default delegate) | `deepseek-v4-flash` | DeepSeek | DeepSeek API |
 | `ds-pro` (hard reasoning) | `deepseek-v4-pro` | DeepSeek | DeepSeek API |
 
@@ -123,11 +123,11 @@ Sometimes you want the whole session on DeepSeek — main agent included — to 
 claude-deepseek        # main = deepseek-v4-pro, subagents = deepseek-v4-flash
 ```
 
-It routes through the same proxy (so `count_tokens` is handled and the key comes from your `.env`). Override the models with `DEEPSEEK_MODEL=...` and `DEEPSEEK_SUBAGENT_MODEL=...`. Your Claude subscription is not touched at all. Use `claude-ds` when you want Opus orchestrating instead.
+It routes through the same proxy (so `count_tokens` is handled and the key comes from your `.env`). Override the models with `DEEPSEEK_MODEL=...` and `DEEPSEEK_SUBAGENT_MODEL=...`. Your Claude subscription is not touched at all. Use `claude-ds` when you want Claude orchestrating instead.
 
 ## Multi-agent workflows
 
-Workflow `agent()` calls inherit the session model (Opus) by default, so a multi-agent workflow runs on Claude unless you route it. The injected policy tells the orchestrator to pass `agentType: 'ds-flash'` / `'ds-pro'` (or `model: 'deepseek-v4-flash'`) to fan-out agents so the bulk of the work lands on DeepSeek while orchestration and final verification stay on Opus.
+Workflow `agent()` calls inherit the session model (Claude) by default, so a multi-agent workflow runs on Claude unless you route it. The injected policy tells the orchestrator to pass `agentType: 'ds-flash'` / `'ds-pro'` (or `model: 'deepseek-v4-flash'`) to fan-out agents so the bulk of the work lands on DeepSeek while orchestration and final verification stay on Claude.
 
 ## FAQ
 

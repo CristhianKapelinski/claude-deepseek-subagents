@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Opus orchestrates on your Claude subscription — DeepSeek does the grunt work. A zero-dependency proxy that gives Claude Code native DeepSeek subagents without losing your subscription.">
+<meta name="description" content="Claude orchestrates on your subscription — DeepSeek does the grunt work. A zero-dependency proxy that gives Claude Code native DeepSeek subagents without losing your subscription.">
 <meta name="color-scheme" content="dark">
 <title>claude-deepseek-subagents</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -253,16 +253,16 @@ details.faq-item .faq-body { padding: 0 1.3rem 1.2rem; color: var(--t2); }
 <header class="hero container" id="top">
   <img src="./banner.svg" alt="" class="hero-img" width="800" height="160">
   <div class="badge" data-i18n="heroBadge">Senior judgment on intern-priced labor</div>
-  <h1 data-i18n="heroTitle">Opus orchestrates on your subscription — DeepSeek does the grunt work.</h1>
-  <p class="lead" data-i18n="heroSubtitle">A zero-dependency proxy that gives Claude Code native DeepSeek subagents. Opus on your plan, DeepSeek on its cheap API, in one session.</p>
+  <h1 data-i18n="heroTitle">Claude orchestrates on your subscription — DeepSeek does the grunt work.</h1>
+  <p class="lead" data-i18n="heroSubtitle">A zero-dependency proxy that gives Claude Code native DeepSeek subagents. Claude on your plan, DeepSeek on its cheap API, in one session.</p>
 
   <div class="analogy-card">
     <div class="tag" data-i18n="analogyLabel">The Analogy</div>
     <p data-i18n="analogyBody">You wouldn't put ten $300k senior engineers on grunt work. You keep <strong>one</strong> sharp senior to plan and review, hand the legwork to cheap interns, and the senior checks it before it ships.</p>
     <div class="pair">
       <div class="pair-item">
-        <strong data-i18n="analogySenior">Opus is your senior</strong>
-        <span data-i18n="analogySeniorDesc">Runs on the Claude subscription you already pay for. It thinks, delegates, and verifies.</span>
+        <strong data-i18n="analogySenior">Claude is your senior</strong>
+        <span data-i18n="analogySeniorDesc">Runs on the subscription you already pay for. It thinks, delegates, and verifies.</span>
       </div>
       <div class="pair-item">
         <strong data-i18n="analogyInterns">DeepSeek v4 subagents are the interns</strong>
@@ -281,8 +281,8 @@ details.faq-item .faq-body { padding: 0 1.3rem 1.2rem; color: var(--t2); }
 <!-- ═══════════════ PROBLEM ═══════════════ -->
 <section id="problem" class="container" aria-labelledby="problem-heading">
   <h2 id="problem-heading" data-i18n="problemTitle">The Problem</h2>
-  <p data-i18n="problemP1">Claude Code is brilliant — but every subagent it spawns (searching, reading dozens of files, mechanical edits, running tests) also burns <strong>Opus</strong>. That is like paying senior-engineer rates for intern work.</p>
-  <p data-i18n="problemP2">On a Pro or Max plan, you hit your weekly usage limit fast. On API billing, you pay Opus prices for work a cheaper model would do just as well.</p>
+  <p data-i18n="problemP1">Claude Code is brilliant — but every subagent it spawns (searching, reading dozens of files, mechanical edits, running tests) also burns <strong>Claude</strong>. That is like paying senior-engineer rates for intern work.</p>
+  <p data-i18n="problemP2">On a Pro or Max plan, you hit your weekly usage limit fast. On API billing, you pay Claude prices for work a cheaper model would do just as well.</p>
 </section>
 
 <!-- ═══════════════ THE DIFFERENTIATOR ═══════════════ -->
@@ -290,13 +290,13 @@ details.faq-item .faq-body { padding: 0 1.3rem 1.2rem; color: var(--t2); }
   <h2 id="how-heading" data-i18n="howTitle">The Key Differentiator</h2>
   <p data-i18n="howP1"><code>ANTHROPIC_BASE_URL</code> is global, so the naive belief is "a proxy breaks my subscription." <strong>This proxy only rewrites auth for <code>deepseek-*</code> requests.</strong> For <code>claude-*</code> requests it forwards Claude Code's own headers <strong>untouched</strong> — so your subscription OAuth token reaches Anthropic exactly as if the proxy were not there.</p>
   <div class="card" style="margin-top:1.5rem; border-color:rgba(99,102,241,0.25); background:rgba(99,102,241,0.04);">
-    <p style="font-size:1.05rem;color:var(--t1);" data-i18n="howHighlight">Opus and DeepSeek run side by side in the same session — Opus on your plan, DeepSeek on its cheap API.</p>
+    <p style="font-size:1.05rem;color:var(--t1);" data-i18n="howHighlight">Claude and DeepSeek run side by side in the same session — Claude on your plan, DeepSeek on its cheap API.</p>
   </div>
 
   <!-- architecture diagram -->
   <div class="arch" aria-label="Architecture diagram" role="figure">
     <div class="arch-box">
-      <strong data-i18n="archYou">You + Opus</strong>
+      <strong data-i18n="archYou">You + Claude</strong>
       <small data-i18n="archYouSub">orchestrator</small>
     </div>
     <span class="arch-arrow side">→</span><span class="arch-arrow down">↓</span>
@@ -307,7 +307,7 @@ details.faq-item .faq-body { padding: 0 1.3rem 1.2rem; color: var(--t2); }
     <span class="arch-arrow side" style="font-size:1rem;">↗&nbsp;claude-*</span><span class="arch-arrow down">↓ claude-*</span>
     <div class="arch-box">
       <strong>Anthropic</strong>
-      <small data-i18n="archAnthropic">Opus · your subscription</small>
+      <small data-i18n="archAnthropic">Claude · your subscription</small>
     </div>
     <span class="arch-arrow side" style="font-size:1rem;">↘&nbsp;deepseek-*</span><span class="arch-arrow down">↓ deepseek-*</span>
     <div class="arch-box" style="border-color:rgba(251,146,60,0.3);">
@@ -336,7 +336,7 @@ details.faq-item .faq-body { padding: 0 1.3rem 1.2rem; color: var(--t2); }
       <tbody>
         <tr>
           <td data-i18n="tblR1Name">Plain Claude Code</td>
-          <td>Opus</td><td data-i18n="tblR1Sub">Opus</td><td class="yes">&#10003;</td><td class="yes">&#10003;</td><td data-i18n="tblR1Parts">none</td>
+          <td>Claude</td><td data-i18n="tblR1Sub">Claude</td><td class="yes">&#10003;</td><td class="yes">&#10003;</td><td data-i18n="tblR1Parts">none</td>
         </tr>
         <tr>
           <td data-i18n="tblR2Name">ANTHROPIC_BASE_URL &#8594; DeepSeek</td>
@@ -344,15 +344,15 @@ details.faq-item .faq-body { padding: 0 1.3rem 1.2rem; color: var(--t2); }
         </tr>
         <tr>
           <td data-i18n="tblR3Name">Full gateway / router</td>
-          <td>Opus*</td><td>any</td><td class="warn" data-i18n="tblR3Subs">usually API billing</td><td class="yes">&#10003;</td><td data-i18n="tblR3Parts">a gateway for all traffic</td>
+          <td>Claude*</td><td>any</td><td class="warn" data-i18n="tblR3Subs">usually API billing</td><td class="yes">&#10003;</td><td data-i18n="tblR3Parts">a gateway for all traffic</td>
         </tr>
         <tr>
           <td data-i18n="tblR4Name">MCP "ask DeepSeek" tool</td>
-          <td>Opus</td><td data-i18n="tblR4Sub">a text call</td><td class="yes">&#10003;</td><td class="no">&#10007;</td><td data-i18n="tblR4Parts">an MCP server</td>
+          <td>Claude</td><td data-i18n="tblR4Sub">a text call</td><td class="yes">&#10003;</td><td class="no">&#10007;</td><td data-i18n="tblR4Parts">an MCP server</td>
         </tr>
         <tr style="background:rgba(99,102,241,0.06);">
           <td><strong data-i18n="tblR5Name">&#8594; this project</strong></td>
-          <td><strong>Opus</strong></td><td><strong>DeepSeek</strong></td><td class="yes"><strong>&#10003;</strong></td><td class="yes"><strong>&#10003;</strong></td><td data-i18n="tblR5Parts"><strong>one ~90-line local proxy</strong></td>
+          <td><strong>Claude</strong></td><td><strong>DeepSeek</strong></td><td class="yes"><strong>&#10003;</strong></td><td class="yes"><strong>&#10003;</strong></td><td data-i18n="tblR5Parts"><strong>one ~90-line local proxy</strong></td>
         </tr>
       </tbody>
     </table>
@@ -410,7 +410,7 @@ ds-proxy stop        # NEVER from inside claude-ds</code></pre>
       <tbody>
         <tr>
           <td data-i18n="runsR1Role">Main / orchestrator</td>
-          <td>Opus 4.8 (1M)</td><td>Anthropic</td><td data-i18n="runsR1Bill">your subscription</td>
+          <td>Claude — default Opus 4.8 (1M)</td><td>Anthropic</td><td data-i18n="runsR1Bill">your subscription</td>
         </tr>
         <tr>
           <td data-i18n="runsR2Role">ds-flash (default delegate)</td>
@@ -429,7 +429,7 @@ ds-proxy stop        # NEVER from inside claude-ds</code></pre>
 <!-- ═══════════════ MULTI-AGENT ═══════════════ -->
 <section id="multi" class="container" aria-labelledby="multi-heading">
   <h2 id="multi-heading" data-i18n="multiTitle">Multi-Agent Workflows</h2>
-  <p data-i18n="multiP1">Workflow <code>agent()</code> calls inherit the session model (Opus) by default. The injected policy tells the orchestrator to pass <code>agentType: 'ds-flash'</code> / <code>'ds-pro'</code> (or <code>model: 'deepseek-v4-flash'</code>) to fan-out agents, so the bulk of the work lands on DeepSeek while orchestration and final verification stay on Opus.</p>
+  <p data-i18n="multiP1">Workflow <code>agent()</code> calls inherit the session model (Claude) by default. The injected policy tells the orchestrator to pass <code>agentType: 'ds-flash'</code> / <code>'ds-pro'</code> (or <code>model: 'deepseek-v4-flash'</code>) to fan-out agents, so the bulk of the work lands on DeepSeek while orchestration and final verification stay on Claude.</p>
 </section>
 
 <!-- ═══════════════ CONFIG ═══════════════ -->
@@ -538,27 +538,27 @@ en: {
   navFAQ: "FAQ",
 
   heroBadge: "Senior judgment on intern-priced labor",
-  heroTitle: "Opus orchestrates on your subscription — DeepSeek does the grunt work.",
-  heroSubtitle: "A zero-dependency proxy that gives Claude Code native DeepSeek subagents. Opus on your plan, DeepSeek on its cheap API, in one session.",
+  heroTitle: "Claude orchestrates on your subscription — DeepSeek does the grunt work.",
+  heroSubtitle: "A zero-dependency proxy that gives Claude Code native DeepSeek subagents. Claude on your plan, DeepSeek on its cheap API, in one session.",
   analogyLabel: "The Analogy",
   analogyBody: "You wouldn’t put ten $300k senior engineers on grunt work. You keep <strong>one</strong> sharp senior to plan and review, hand the legwork to cheap interns, and the senior checks it before it ships.",
-  analogySenior: "Opus is your senior",
-  analogySeniorDesc: "Runs on the Claude subscription you already pay for. It thinks, delegates, and verifies.",
+  analogySenior: "Claude is your senior",
+  analogySeniorDesc: "Runs on the subscription you already pay for. It thinks, delegates, and verifies.",
   analogyInterns: "DeepSeek v4 subagents are the interns",
   analogyInternsDesc: "Fast, cheap, do the actual grinding under supervision. Full tool loop: read, grep, bash, edit.",
   ctaGitHub: "View on GitHub",
   ctaInstall: "Install in one command",
 
   problemTitle: "The Problem",
-  problemP1: "Claude Code is brilliant — but every subagent it spawns (searching, reading dozens of files, mechanical edits, running tests) also burns <strong>Opus</strong>. That is like paying senior-engineer rates for intern work.",
-  problemP2: "On a Pro or Max plan, you hit your weekly usage limit fast. On API billing, you pay Opus prices for work a cheaper model would do just as well.",
+  problemP1: "Claude Code is brilliant — but every subagent it spawns (searching, reading dozens of files, mechanical edits, running tests) also burns <strong>Claude</strong>. That is like paying senior-engineer rates for intern work.",
+  problemP2: "On a Pro or Max plan, you hit your weekly usage limit fast. On API billing, you pay Claude prices for work a cheaper model would do just as well.",
 
   howTitle: "The Key Differentiator",
   howP1: "<code>ANTHROPIC_BASE_URL</code> is global, so the naive belief is “a proxy breaks my subscription.” <strong>This proxy only rewrites auth for <code>deepseek-*</code> requests.</strong> For <code>claude-*</code> requests it forwards Claude Code’s own headers <strong>untouched</strong> — so your subscription OAuth token reaches Anthropic exactly as if the proxy were not there.",
-  howHighlight: "Opus and DeepSeek run side by side in the same session — Opus on your plan, DeepSeek on its cheap API.",
-  archYou: "You + Opus",
+  howHighlight: "Claude and DeepSeek run side by side in the same session — Claude on your plan, DeepSeek on its cheap API.",
+  archYou: "You + Claude",
   archYouSub: "orchestrator",
-  archAnthropic: "Opus · your subscription",
+  archAnthropic: "Claude · your subscription",
 
   whyTitle: "Why This Instead of the Alternatives",
   whyIntro: "Every approach to using a cheaper model with Claude Code gives something up — except this one.",
@@ -569,7 +569,7 @@ en: {
   tblHTools: "Subagents have tools",
   tblHParts: "Extra moving parts",
   tblR1Name: "Plain Claude Code",
-  tblR1Sub: "Opus 💸",
+  tblR1Sub: "Claude 💸",
   tblR1Parts: "none",
   tblR2Name: "ANTHROPIC_BASE_URL → DeepSeek",
   tblR2Main: "DeepSeek ❌",
@@ -608,7 +608,7 @@ en: {
   runsOverride: "Change any model via the agent files’ <code>model:</code> line, or override the main with <code>DEEPSEEK_MAIN_MODEL=... claude-ds</code>.",
 
   multiTitle: "Multi-Agent Workflows",
-  multiP1: "Workflow <code>agent()</code> calls inherit the session model (Opus) by default. The injected policy tells the orchestrator to pass <code>agentType: ‘ds-flash’</code> / <code>‘ds-pro’</code> (or <code>model: ‘deepseek-v4-flash’</code>) to fan-out agents, so the bulk of the work lands on DeepSeek while orchestration and final verification stay on Opus.",
+  multiP1: "Workflow <code>agent()</code> calls inherit the session model (Claude) by default. The injected policy tells the orchestrator to pass <code>agentType: ‘ds-flash’</code> / <code>‘ds-pro’</code> (or <code>model: ‘deepseek-v4-flash’</code>) to fan-out agents, so the bulk of the work lands on DeepSeek while orchestration and final verification stay on Claude.",
 
   configTitle: "Configuration",
   cfgHVar: "Env var",
@@ -655,27 +655,27 @@ pt: {
   navFAQ: "FAQ",
 
   heroBadge: "Julgamento sênior com preço de estagiário",
-  heroTitle: "Opus orquestra na sua assinatura — o DeepSeek faz o trabalho pesado.",
-  heroSubtitle: "Um proxy sem dependências que dá ao Claude Code subagentes nativos no DeepSeek. Opus no seu plano, DeepSeek na sua API barata, em uma única sessão.",
+  heroTitle: "O Claude orquestra na sua assinatura — o DeepSeek faz o trabalho pesado.",
+  heroSubtitle: "Um proxy sem dependências que dá ao Claude Code subagentes nativos no DeepSeek. Claude no seu plano, DeepSeek na sua API barata, em uma única sessão.",
   analogyLabel: "A Analogia",
   analogyBody: "Você não colocaria dez engenheiros sêniores de R$ 1,5 mi/ano em trabalho braçal. Você mantém <strong>um</strong> sênior afiado para planejar e revisar, passa a parte pesada para estagiários baratos, e o sênior confere antes de entregar.",
-  analogySenior: "Opus é o seu sênior",
-  analogySeniorDesc: "Roda na assinatura do Claude que você já paga. Ele pensa, delega e verifica.",
+  analogySenior: "O Claude é o seu sênior",
+  analogySeniorDesc: "Roda na assinatura que você já paga. Ele pensa, delega e verifica.",
   analogyInterns: "Subagentes DeepSeek v4 são os estagiários",
   analogyInternsDesc: "Rápidos, baratos, fazem o trabalho pesado sob supervisão. Ciclo completo de ferramentas: read, grep, bash, edit.",
   ctaGitHub: "Ver no GitHub",
   ctaInstall: "Instalar com um comando",
 
   problemTitle: "O Problema",
-  problemP1: "O Claude Code é brilhante — mas cada subagente que ele cria (buscar, ler dezenas de arquivos, edições mecânicas, rodar testes) também consome o <strong>Opus</strong>. É como pagar salário de sênior para trabalho de estagiário.",
-  problemP2: "No plano Pro ou Max, você estoura o limite semanal rapidinho. Na cobrança por API, você paga preço de Opus por trabalho que um modelo mais barato faria igual.",
+  problemP1: "O Claude Code é brilhante — mas cada subagente que ele cria (buscar, ler dezenas de arquivos, edições mecânicas, rodar testes) também consome o <strong>Claude</strong>. É como pagar salário de sênior para trabalho de estagiário.",
+  problemP2: "No plano Pro ou Max, você estoura o limite semanal rapidinho. Na cobrança por API, você paga preço de Claude por trabalho que um modelo mais barato faria igual.",
 
   howTitle: "O Grande Diferenciador",
   howP1: "<code>ANTHROPIC_BASE_URL</code> é global, então a crença ingênua é “um proxy quebra minha assinatura.” <strong>Este proxy só reescreve a autenticação para requisições <code>deepseek-*</code>.</strong> Para requisições <code>claude-*</code>, ele encaminha os headers do Claude Code <strong>intocados</strong> — então seu token OAuth da assinatura chega à Anthropic exatamente como se o proxy não existisse.",
-  howHighlight: "Opus e DeepSeek rodam lado a lado na mesma sessão — Opus no seu plano, DeepSeek na sua API barata.",
-  archYou: "Você + Opus",
+  howHighlight: "Claude e DeepSeek rodam lado a lado na mesma sessão — Claude no seu plano, DeepSeek na sua API barata.",
+  archYou: "Você + Claude",
   archYouSub: "orquestrador",
-  archAnthropic: "Opus · sua assinatura",
+  archAnthropic: "Claude · sua assinatura",
 
   whyTitle: "Por Que Isso em Vez das Alternativas",
   whyIntro: "Toda abordagem para usar um modelo mais barato com o Claude Code sacrifica alguma coisa — menos esta.",
@@ -686,7 +686,7 @@ pt: {
   tblHTools: "Subagentes têm ferramentas",
   tblHParts: "Peças extras",
   tblR1Name: "Claude Code puro",
-  tblR1Sub: "Opus 💸",
+  tblR1Sub: "Claude 💸",
   tblR1Parts: "nenhuma",
   tblR2Name: "ANTHROPIC_BASE_URL → DeepSeek",
   tblR2Main: "DeepSeek ❌",
@@ -725,7 +725,7 @@ pt: {
   runsOverride: "Altere qualquer modelo pela linha <code>model:</code> nos arquivos de agente, ou substitua o principal com <code>DEEPSEEK_MAIN_MODEL=... claude-ds</code>.",
 
   multiTitle: "Fluxos Multi-Agente",
-  multiP1: "Chamadas de workflow <code>agent()</code> herdam o modelo da sessão (Opus) por padrão. A política injetada instrui o orquestrador a passar <code>agentType: ‘ds-flash’</code> / <code>‘ds-pro’</code> (ou <code>model: ‘deepseek-v4-flash’</code>) para os agentes de fan-out, fazendo a massa do trabalho cair no DeepSeek enquanto orquestração e verificação final ficam no Opus.",
+  multiP1: "Chamadas de workflow <code>agent()</code> herdam o modelo da sessão (Claude) por padrão. A política injetada instrui o orquestrador a passar <code>agentType: ‘ds-flash’</code> / <code>‘ds-pro’</code> (ou <code>model: ‘deepseek-v4-flash’</code>) para os agentes de fan-out, fazendo a massa do trabalho cair no DeepSeek enquanto orquestração e verificação final ficam no Claude.",
 
   configTitle: "Configuração",
   cfgHVar: "Variável",
@@ -772,27 +772,27 @@ es: {
   navFAQ: "FAQ",
 
   heroBadge: "Criterio sénior a precio de becario",
-  heroTitle: "Opus orquesta en tu suscripción — DeepSeek hace el trabajo pesado.",
-  heroSubtitle: "Un proxy sin dependencias que le da a Claude Code subagentes nativos en DeepSeek. Opus en tu plan, DeepSeek en su API barata, en una sola sesión.",
+  heroTitle: "Claude orquesta en tu suscripción — DeepSeek hace el trabajo pesado.",
+  heroSubtitle: "Un proxy sin dependencias que le da a Claude Code subagentes nativos en DeepSeek. Claude en tu plan, DeepSeek en su API barata, en una sola sesión.",
   analogyLabel: "La Analogía",
   analogyBody: "No pondrías a diez ingenieros sénior de $300k al año a hacer trabajo mecánico. Mantienes a <strong>un</strong> sénior brillante para planificar y revisar, delegas lo pesado a becarios baratos, y el sénior lo revisa antes de entregar.",
-  analogySenior: "Opus es tu sénior",
-  analogySeniorDesc: "Funciona con la suscripción de Claude que ya pagas. Piensa, delega y verifica.",
+  analogySenior: "Claude es tu sénior",
+  analogySeniorDesc: "Funciona con la suscripción que ya pagas. Piensa, delega y verifica.",
   analogyInterns: "Los subagentes DeepSeek v4 son los becarios",
   analogyInternsDesc: "Rápidos, baratos, hacen el trabajo pesado bajo supervisión. Ciclo completo de herramientas: read, grep, bash, edit.",
   ctaGitHub: "Ver en GitHub",
   ctaInstall: "Instalar con un comando",
 
   problemTitle: "El Problema",
-  problemP1: "Claude Code es brillante — pero cada subagente que genera (buscar, leer decenas de archivos, ediciones mecánicas, ejecutar pruebas) también consume <strong>Opus</strong>. Es como pagar tarifa de sénior por trabajo de becario.",
-  problemP2: "En un plan Pro o Max, alcanzas el límite semanal rápido. Con facturación por API, pagas precios de Opus por trabajo que un modelo más barato haría igual de bien.",
+  problemP1: "Claude Code es brillante — pero cada subagente que genera (buscar, leer decenas de archivos, ediciones mecánicas, ejecutar pruebas) también consume <strong>Claude</strong>. Es como pagar tarifa de sénior por trabajo de becario.",
+  problemP2: "En un plan Pro o Max, alcanzas el límite semanal rápido. Con facturación por API, pagas precios de Claude por trabajo que un modelo más barato haría igual de bien.",
 
   howTitle: "El Diferenciador Clave",
   howP1: "<code>ANTHROPIC_BASE_URL</code> es global, así que la creencia ingenua es “un proxy rompe mi suscripción.” <strong>Este proxy solo reescribe la autenticación para solicitudes <code>deepseek-*</code>.</strong> Para solicitudes <code>claude-*</code>, reenvía los encabezados de Claude Code <strong>intactos</strong> — así tu token OAuth de suscripción llega a Anthropic exactamente como si el proxy no existiera.",
-  howHighlight: "Opus y DeepSeek funcionan lado a lado en la misma sesión — Opus en tu plan, DeepSeek en su API barata.",
-  archYou: "Tú + Opus",
+  howHighlight: "Claude y DeepSeek funcionan lado a lado en la misma sesión — Claude en tu plan, DeepSeek en su API barata.",
+  archYou: "Tú + Claude",
   archYouSub: "orquestador",
-  archAnthropic: "Opus · tu suscripción",
+  archAnthropic: "Claude · tu suscripción",
 
   whyTitle: "Por Qué Esto en Vez de las Alternativas",
   whyIntro: "Cada enfoque para usar un modelo más barato con Claude Code sacrifica algo — excepto este.",
@@ -803,7 +803,7 @@ es: {
   tblHTools: "Subagentes con herramientas",
   tblHParts: "Piezas extra",
   tblR1Name: "Claude Code puro",
-  tblR1Sub: "Opus 💸",
+  tblR1Sub: "Claude 💸",
   tblR1Parts: "ninguna",
   tblR2Name: "ANTHROPIC_BASE_URL → DeepSeek",
   tblR2Main: "DeepSeek ❌",
@@ -842,7 +842,7 @@ es: {
   runsOverride: "Cambia cualquier modelo mediante la línea <code>model:</code> en los archivos de agente, o anula el principal con <code>DEEPSEEK_MAIN_MODEL=... claude-ds</code>.",
 
   multiTitle: "Flujos Multi-Agente",
-  multiP1: "Las llamadas de workflow <code>agent()</code> heredan el modelo de sesión (Opus) por defecto. La política inyectada indica al orquestador pasar <code>agentType: ‘ds-flash’</code> / <code>‘ds-pro’</code> (o <code>model: ‘deepseek-v4-flash’</code>) a los agentes de expansión, haciendo que el grueso del trabajo recaiga en DeepSeek mientras la orquestación y verificación final permanecen en Opus.",
+  multiP1: "Las llamadas de workflow <code>agent()</code> heredan el modelo de sesión (Claude) por defecto. La política inyectada indica al orquestador pasar <code>agentType: ‘ds-flash’</code> / <code>‘ds-pro’</code> (o <code>model: ‘deepseek-v4-flash’</code>) a los agentes de expansión, haciendo que el grueso del trabajo recaiga en DeepSeek mientras la orquestación y verificación final permanecen en Claude.",
 
   configTitle: "Configuración",
   cfgHVar: "Variable",
