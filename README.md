@@ -8,10 +8,10 @@
   <img src="https://img.shields.io/badge/dependencies-0-brightgreen" alt="zero deps">
   <img src="https://img.shields.io/badge/install-one%20command-fb923c" alt="one command">
   <a href="#contributing"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs welcome"></a>
-  <a href="https://cristhiankapelinski.github.io/claude-deepseek-subagents/"><img src="https://img.shields.io/badge/website-EN%20·%20PT%20·%20ES-6366f1" alt="website"></a>
+  <a href="https://claude-deepseek-subagents.github.io/"><img src="https://img.shields.io/badge/website-EN%20·%20PT%20·%20ES-6366f1" alt="website"></a>
 </p>
 
-<p align="center"><a href="https://cristhiankapelinski.github.io/claude-deepseek-subagents/"><b>🌐 Full site — English · Português · Español</b></a></p>
+<p align="center"><a href="https://claude-deepseek-subagents.github.io/"><b>🌐 Full site — English · Português · Español</b></a></p>
 
 <h1 align="center">claude-deepseek-subagents</h1>
 
