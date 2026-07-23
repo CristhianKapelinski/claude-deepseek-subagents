@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Opus orchestrates on your Claude subscription — DeepSeek does the grunt work. A zero-dependency proxy that gives Claude Code native DeepSeek subagents without losing your subscription.">
+<meta name="color-scheme" content="dark">
+<title>claude-deepseek-subagents</title>
+<style>
+/* ── reset & variables ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg-0: #0b1020;
+  --bg-1: #211a49;
+  --indigo: #6366f1;
+  --indigo-l: #818cf8;
+  --orange: #fb923c;
+  --t1: #f8fafc;
+  --t2: #cbd5e1;
+  --t3: #94a3b8;
+  --card-bg: rgba(255,255,255,0.03);
+  --card-border: rgba(255,255,255,0.08);
+  --code-bg: #0b0e14;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --max-w: 960px;
+  --font-mono: 'SF Mono','Fira Code','Cascadia Code',Consolas,monospace;
+}
+html { scroll-behavior: smooth; font-size: 17px; }
+body {
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;
+  background: linear-gradient(160deg, var(--bg-0) 0%, var(--bg-1) 60%, var(--bg-0) 100%);
+  color: var(--t2); line-height: 1.65; min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── nav ───────────────────────────────────────────────── */
+.site-nav {
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  background: rgba(11,16,32,0.82);
+  border-bottom: 1px solid var(--card-border);
+}
+.nav-inner {
+  max-width: var(--max-w); margin: 0 auto;
+  display: flex; align-items: center; gap: 1.4rem;
+  padding: 0.6rem 1.4rem;
+}
+.nav-logo {
+  font-weight: 700; font-size: 0.92rem; color: var(--t1);
+  white-space: nowrap; text-decoration: none;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.nav-logo .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--indigo); }
+.nav-links { display: flex; gap: 0.2rem; flex-wrap: wrap; }
+.nav-links a {
+  color: var(--t3); text-decoration: none; font-size: 0.82rem;
+  padding: 0.3rem 0.65rem; border-radius: 6px; transition: color .15s, background .15s;
+}
+.nav-links a:hover, .nav-links a:focus-visible { color: var(--t1); background: rgba(255,255,255,0.06); }
+.lang-switcher {
+  margin-left: auto; display: flex; gap: 0.25rem; align-items: center;
+}
+.lang-btn {
+  background: none; border: 1px solid transparent; color: var(--t3);
+  font-size: 0.78rem; padding: 0.2rem 0.5rem; border-radius: 5px;
+  cursor: pointer; transition: all .15s; font-family: inherit;
+}
+.lang-btn:hover, .lang-btn:focus-visible { color: var(--t1); border-color: var(--card-border); }
+.lang-btn.active { color: var(--indigo-l); border-color: var(--indigo); background: rgba(99,102,241,0.1); }
+
+/* ── layout ────────────────────────────────────────────── */
+.container { max-width: var(--max-w); margin: 0 auto; padding: 0 1.4rem; }
+section { padding: 4.5rem 0; }
+section + section { border-top: 1px solid var(--card-border); }
+
+h1, h2, h3 { color: var(--t1); line-height: 1.25; }
+h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.7rem; font-weight: 700; margin-bottom: 1.4rem; letter-spacing: -0.01em; }
+h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+
+p + p { margin-top: 0.85rem; }
+
+a { color: var(--indigo-l); text-decoration: underline; text-underline-offset: 3px; }
+a:hover { color: var(--orange); }
+
+/* ── hero ──────────────────────────────────────────────── */
+.hero { text-align: center; padding: 3rem 0 4.5rem; }
+.hero-img { max-width: 100%; height: auto; margin-bottom: 2rem; }
+.hero .badge {
+  display: inline-block; background: rgba(251,146,60,0.12); color: var(--orange);
+  font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0.3rem 0.9rem; border-radius: 999px; margin-bottom: 0.9rem;
+}
+.hero h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); margin-bottom: 0.3rem; }
+.hero .lead { font-size: 1.15rem; color: var(--t1); font-weight: 500; margin-bottom: 0.6rem; }
+.analogy-card {
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: var(--radius); padding: 1.6rem 1.8rem; margin: 2rem auto 0;
+  max-width: 760px; text-align: left;
+}
+.analogy-card .tag {
+  color: var(--orange); font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; margin-bottom: 0.5rem;
+}
+.analogy-card p { font-size: 1.02rem; }
+.analogy-card .pair { margin-top: 1.1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.analogy-card .pair-item {
+  background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.18);
+  border-radius: var(--radius-sm); padding: 1rem 1.2rem;
+}
+.analogy-card .pair-item strong { color: var(--t1); display: block; margin-bottom: 0.25rem; }
+.cta-row { display: flex; gap: 0.8rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  padding: 0.65rem 1.4rem; border-radius: 8px; font-weight: 600; font-size: 0.92rem;
+  text-decoration: none; border: 1px solid transparent; cursor: pointer;
+  transition: all .18s; font-family: inherit;
+}
+.btn-primary { background: var(--indigo); color: #fff; border-color: var(--indigo); }
+.btn-primary:hover { background: #4f46e5; color: #fff; }
+.btn-outline { border-color: var(--card-border); color: var(--t1); }
+.btn-outline:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); }
+
+/* ── cards / tables ────────────────────────────────────── */
+.card {
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: var(--radius); padding: 1.6rem 1.8rem; margin-bottom: 1.2rem;
+}
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { padding: 0.7rem 0.85rem; text-align: left; border-bottom: 1px solid var(--card-border); }
+th { color: var(--t1); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+td { color: var(--t2); }
+tr:last-child td { border-bottom: none; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius); border: 1px solid var(--card-border); }
+.table-wrap table { margin: 0; }
+.table-wrap th, .table-wrap td { white-space: nowrap; }
+.table-wrap th:first-child, .table-wrap td:first-child { min-width: 160px; }
+.yes { color: #4ade80; font-weight: 700; }
+.no  { color: #f87171; font-weight: 700; }
+.warn { color: var(--orange); font-weight: 600; }
+
+/* ── architecture diagram ──────────────────────────────── */
+.arch {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 0.6rem; margin: 2rem 0; font-size: 0.82rem;
+}
+.arch-box {
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm); padding: 0.9rem 1.1rem; text-align: center;
+  min-width: 100px;
+}
+.arch-box strong { display: block; color: var(--t1); margin-bottom: 0.15rem; }
+.arch-box small { color: var(--t3); }
+.arch-arrow { color: var(--indigo-l); font-size: 1.3rem; font-weight: 700; }
+.arch-arrow.down { display: none; }
+
+/* ── code blocks ───────────────────────────────────────── */
+.code-block {
+  position: relative; margin: 1.2rem 0;
+  background: var(--code-bg); border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm); overflow: hidden;
+}
+.code-block .bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.45rem 0.9rem; background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--card-border);
+}
+.code-block .bar span { font-size: 0.7rem; color: var(--t3); text-transform: uppercase; letter-spacing: 0.06em; }
+.copy-btn {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--card-border);
+  color: var(--t3); font-size: 0.7rem; padding: 0.2rem 0.65rem; border-radius: 4px;
+  cursor: pointer; transition: all .15s; font-family: inherit;
+}
+.copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--t1); }
+.copy-btn.copied { color: #4ade80; border-color: #4ade8040; }
+.code-block pre {
+  margin: 0; padding: 1rem 1.2rem; overflow-x: auto;
+  font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.6; color: var(--t2);
+}
+
+/* ── FAQ accordion ─────────────────────────────────────── */
+details.faq-item {
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm); margin-bottom: 0.6rem;
+}
+details.faq-item summary {
+  padding: 1rem 1.3rem; font-weight: 600; color: var(--t1);
+  cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.5rem;
+  user-select: none;
+}
+details.faq-item summary::-webkit-details-marker { display: none; }
+details.faq-item summary::before {
+  content: "+"; font-weight: 300; font-size: 1.2rem; color: var(--indigo-l);
+  width: 1.2rem; text-align: center; transition: transform .2s; flex-shrink: 0;
+}
+details.faq-item[open] summary::before { content: "−"; }
+details.faq-item .faq-body { padding: 0 1.3rem 1.2rem; color: var(--t2); }
+
+/* ── footer ────────────────────────────────────────────── */
+.site-footer {
+  text-align: center; padding: 2.5rem 1rem; border-top: 1px solid var(--card-border);
+  font-size: 0.8rem; color: var(--t3);
+}
+.site-footer p + p { margin-top: 0.3rem; }
+
+/* ── responsive ────────────────────────────────────────── */
+@media (max-width: 700px) {
+  html { font-size: 16px; }
+  section { padding: 3rem 0; }
+  .nav-inner { gap: 0.6rem; }
+  .nav-links { gap: 0; }
+  .nav-links a { font-size: 0.75rem; padding: 0.3rem 0.45rem; }
+  .analogy-card .pair { grid-template-columns: 1fr; }
+  .arch { flex-direction: column; }
+  .arch-arrow.side { display: none; }
+  .arch-arrow.down { display: block; }
+}
+@media (max-width: 500px) {
+  .nav-inner { flex-wrap: wrap; justify-content: center; }
+  .lang-switcher { margin-left: 0; }
+  .hero h1 { font-size: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav class="site-nav" aria-label="Main navigation">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo"><span class="dot"></span><span data-i18n="siteTitle">claude-deepseek-subagents</span></a>
+    <div class="nav-links">
+      <a href="#install" data-i18n="navInstall">Install</a>
+      <a href="#how" data-i18n="navHow">How</a>
+      <a href="#why" data-i18n="navWhy">Why</a>
+      <a href="#config" data-i18n="navConfig">Config</a>
+      <a href="#faq" data-i18n="navFAQ">FAQ</a>
+    </div>
+    <div class="lang-switcher" role="radiogroup" aria-label="Language">
+      <button class="lang-btn active" role="radio" aria-checked="true" data-lang="en">EN</button>
+      <span aria-hidden="true" style="color:var(--t3)">·</span>
+      <button class="lang-btn" role="radio" aria-checked="false" data-lang="pt">PT</button>
+      <span aria-hidden="true" style="color:var(--t3)">·</span>
+      <button class="lang-btn" role="radio" aria-checked="false" data-lang="es">ES</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<header class="hero container" id="top">
+  <img src="./banner.svg" alt="" class="hero-img" width="800" height="160">
+  <div class="badge" data-i18n="heroBadge">Senior judgment on intern-priced labor</div>
+  <h1 data-i18n="heroTitle">Opus orchestrates on your subscription — DeepSeek does the grunt work.</h1>
+  <p class="lead" data-i18n="heroSubtitle">A zero-dependency proxy that gives Claude Code native DeepSeek subagents. Opus on your plan, DeepSeek on its cheap API, in one session.</p>
+
+  <div class="analogy-card">
+    <div class="tag" data-i18n="analogyLabel">The Analogy</div>
+    <p data-i18n="analogyBody">You wouldn't put ten $300k senior engineers on grunt work. You keep <strong>one</strong> sharp senior to plan and review, hand the legwork to cheap interns, and the senior checks it before it ships.</p>
+    <div class="pair">
+      <div class="pair-item">
+        <strong data-i18n="analogySenior">Opus is your senior</strong>
+        <span data-i18n="analogySeniorDesc">Runs on the Claude subscription you already pay for. It thinks, delegates, and verifies.</span>
+      </div>
+      <div class="pair-item">
+        <strong data-i18n="analogyInterns">DeepSeek v4 subagents are the interns</strong>
+        <span data-i18n="analogyInternsDesc">Fast, cheap, do the actual grinding under supervision. Full tool loop: read, grep, bash, edit.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-row">
+    <a href="https://github.com/CristhianKapelinski/claude-deepseek-subagents" class="btn btn-primary" data-i18n="ctaGitHub" target="_blank" rel="noopener">View on GitHub</a>
+    <a href="#install" class="btn btn-outline" data-i18n="ctaInstall">Install in one command</a>
+  </div>
+</header>
+
+<main>
+<!-- ═══════════════ PROBLEM ═══════════════ -->
+<section id="problem" class="container" aria-labelledby="problem-heading">
+  <h2 id="problem-heading" data-i18n="problemTitle">The Problem</h2>
+  <p data-i18n="problemP1">Claude Code is brilliant — but every subagent it spawns (searching, reading dozens of files, mechanical edits, running tests) also burns <strong>Opus</strong>. That is like paying senior-engineer rates for intern work.</p>
+  <p data-i18n="problemP2">On a Pro or Max plan, you hit your weekly usage limit fast. On API billing, you pay Opus prices for work a cheaper model would do just as well.</p>
+</section>
+
+<!-- ═══════════════ THE DIFFERENTIATOR ═══════════════ -->
+<section id="how" class="container" aria-labelledby="how-heading">
+  <h2 id="how-heading" data-i18n="howTitle">The Key Differentiator</h2>
+  <p data-i18n="howP1"><code>ANTHROPIC_BASE_URL</code> is global, so the naive belief is "a proxy breaks my subscription." <strong>This proxy only rewrites auth for <code>deepseek-*</code> requests.</strong> For <code>claude-*</code> requests it forwards Claude Code's own headers <strong>untouched</strong> — so your subscription OAuth token reaches Anthropic exactly as if the proxy were not there.</p>
+  <div class="card" style="margin-top:1.5rem; border-color:rgba(99,102,241,0.25); background:rgba(99,102,241,0.04);">
+    <p style="font-size:1.05rem;color:var(--t1);" data-i18n="howHighlight">Opus and DeepSeek run side by side in the same session — Opus on your plan, DeepSeek on its cheap API.</p>
+  </div>
+
+  <!-- architecture diagram -->
+  <div class="arch" aria-label="Architecture diagram" role="figure">
+    <div class="arch-box">
+      <strong data-i18n="archYou">You + Opus</strong>
+      <small data-i18n="archYouSub">orchestrator</small>
+    </div>
+    <span class="arch-arrow side">→</span><span class="arch-arrow down">↓</span>
+    <div class="arch-box" style="border-color:rgba(99,102,241,0.3);">
+      <strong style="color:var(--indigo-l);">Proxy</strong>
+      <small>127.0.0.1:8080</small>
+    </div>
+    <span class="arch-arrow side" style="font-size:1rem;">↗&nbsp;claude-*</span><span class="arch-arrow down">↓ claude-*</span>
+    <div class="arch-box">
+      <strong>Anthropic</strong>
+      <small data-i18n="archAnthropic">Opus · your subscription</small>
+    </div>
+    <span class="arch-arrow side" style="font-size:1rem;">↘&nbsp;deepseek-*</span><span class="arch-arrow down">↓ deepseek-*</span>
+    <div class="arch-box" style="border-color:rgba(251,146,60,0.3);">
+      <strong style="color:var(--orange);">DeepSeek</strong>
+      <small>ds-flash / ds-pro</small>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ COMPARISON TABLE ═══════════════ -->
+<section id="why" class="container" aria-labelledby="why-heading">
+  <h2 id="why-heading" data-i18n="whyTitle">Why This Instead of the Alternatives</h2>
+  <p data-i18n="whyIntro">Every approach to using a cheaper model with Claude Code gives something up — except this one.</p>
+  <div class="table-wrap" role="table" aria-label="Comparison of approaches">
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="tblHApproach">Approach</th>
+          <th data-i18n="tblHMain">Main agent</th>
+          <th data-i18n="tblHSub">Subagents</th>
+          <th data-i18n="tblHSubs">Keeps subscription</th>
+          <th data-i18n="tblHTools">Subagents have tools</th>
+          <th data-i18n="tblHParts">Extra moving parts</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-i18n="tblR1Name">Plain Claude Code</td>
+          <td>Opus</td><td data-i18n="tblR1Sub">Opus</td><td class="yes">&#10003;</td><td class="yes">&#10003;</td><td data-i18n="tblR1Parts">none</td>
+        </tr>
+        <tr>
+          <td data-i18n="tblR2Name">ANTHROPIC_BASE_URL &#8594; DeepSeek</td>
+          <td class="no" data-i18n="tblR2Main">DeepSeek</td><td>DeepSeek</td><td class="no">&#10007;</td><td class="yes">&#10003;</td><td data-i18n="tblR2Parts">env only</td>
+        </tr>
+        <tr>
+          <td data-i18n="tblR3Name">Full gateway / router</td>
+          <td>Opus*</td><td>any</td><td class="warn" data-i18n="tblR3Subs">usually API billing</td><td class="yes">&#10003;</td><td data-i18n="tblR3Parts">a gateway for all traffic</td>
+        </tr>
+        <tr>
+          <td data-i18n="tblR4Name">MCP "ask DeepSeek" tool</td>
+          <td>Opus</td><td data-i18n="tblR4Sub">a text call</td><td class="yes">&#10003;</td><td class="no">&#10007;</td><td data-i18n="tblR4Parts">an MCP server</td>
+        </tr>
+        <tr style="background:rgba(99,102,241,0.06);">
+          <td><strong data-i18n="tblR5Name">&#8594; this project</strong></td>
+          <td><strong>Opus</strong></td><td><strong>DeepSeek</strong></td><td class="yes"><strong>&#10003;</strong></td><td class="yes"><strong>&#10003;</strong></td><td data-i18n="tblR5Parts"><strong>one ~90-line local proxy</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════ INSTALL ═══════════════ -->
+<section id="install" class="container" aria-labelledby="install-heading">
+  <h2 id="install-heading" data-i18n="installTitle">Install</h2>
+  <div class="code-block">
+    <div class="bar"><span data-i18n="installCmdLabel">One command</span><button class="copy-btn" data-i18n-title="copyBtn" title="Copy">Copy</button></div>
+    <pre><code>curl -fsSL https://raw.githubusercontent.com/CristhianKapelinski/claude-deepseek-subagents/main/install.sh | bash</code></pre>
+  </div>
+  <p data-i18n="installAfter">Then drop your DeepSeek key (from <a href="https://platform.deepseek.com/" target="_blank" rel="noopener">platform.deepseek.com</a>) into <code>~/.claude/deepseek/.env</code> (chmod 600):</p>
+  <div class="code-block">
+    <div class="bar"><span>.env</span></div>
+    <pre><code>DEEPSEEK_API_KEY=sk-...</code></pre>
+  </div>
+  <p style="margin-top:1rem;font-size:0.9rem;" data-i18n="installReqs"><strong>Requirements:</strong> Node.js 18+, curl, and <code>claude</code> (Claude Code) logged into your subscription.</p>
+</section>
+
+<!-- ═══════════════ USE ═══════════════ -->
+<section id="use" class="container" aria-labelledby="use-heading">
+  <h2 id="use-heading" data-i18n="useTitle">Use</h2>
+  <div class="code-block">
+    <div class="bar"><span data-i18n="useCmdLabel">Terminal</span><button class="copy-btn" data-i18n-title="copyBtn" title="Copy">Copy</button></div>
+    <pre><code>claude-ds        # instead of `claude`</code></pre>
+  </div>
+  <p data-i18n="useDesc">Claude Code exactly as usual — except when the orchestrator delegates, the work runs on DeepSeek. Plain <code>claude</code> stays completely untouched. Switch anytime.</p>
+  <p data-i18n="useManager">Watch it happen from <strong>another</strong> terminal:</p>
+  <div class="code-block">
+    <div class="bar"><span data-i18n="useMgrLabel">Manager</span><button class="copy-btn" data-i18n-title="copyBtn" title="Copy">Copy</button></div>
+    <pre><code>ds-proxy status      # up/down, pid, key present
+ds-proxy log         # live — every call: model -> DEEPSEEK | anthropic
+ds-proxy stop        # NEVER from inside claude-ds</code></pre>
+  </div>
+  <div class="card" style="border-color:rgba(251,146,60,0.2); background:rgba(251,146,60,0.04); margin-top:1rem;">
+    <p style="font-size:0.88rem;" data-i18n="useWarning"><strong>&#9888; Warning:</strong> Never run <code>ds-proxy stop</code> or <code>ds-proxy restart</code> <strong>inside</strong> a <code>claude-ds</code> session — that session talks to the API <em>through</em> the proxy, so killing it drops its own connection. Manage the proxy from a normal terminal.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ WHAT RUNS WHERE ═══════════════ -->
+<section id="runs" class="container" aria-labelledby="runs-heading">
+  <h2 id="runs-heading" data-i18n="runsTitle">What Runs Where</h2>
+  <div class="table-wrap" role="table" aria-label="What runs where">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th data-i18n="runsHModel">Model</th>
+          <th data-i18n="runsHEndpoint">Endpoint</th>
+          <th data-i18n="runsHBilled">Billed to</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-i18n="runsR1Role">Main / orchestrator</td>
+          <td>Opus 4.8 (1M)</td><td>Anthropic</td><td data-i18n="runsR1Bill">your subscription</td>
+        </tr>
+        <tr>
+          <td data-i18n="runsR2Role">ds-flash (default delegate)</td>
+          <td><code>deepseek-v4-flash</code></td><td>DeepSeek</td><td data-i18n="runsR2Bill">DeepSeek API</td>
+        </tr>
+        <tr>
+          <td data-i18n="runsR3Role">ds-pro (hard reasoning)</td>
+          <td><code>deepseek-v4-pro</code></td><td>DeepSeek</td><td data-i18n="runsR3Bill">DeepSeek API</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:1rem;font-size:0.88rem;" data-i18n="runsOverride">Change any model via the agent files' <code>model:</code> line, or override the main with <code>DEEPSEEK_MAIN_MODEL=... claude-ds</code>.</p>
+</section>
+
+<!-- ═══════════════ MULTI-AGENT ═══════════════ -->
+<section id="multi" class="container" aria-labelledby="multi-heading">
+  <h2 id="multi-heading" data-i18n="multiTitle">Multi-Agent Workflows</h2>
+  <p data-i18n="multiP1">Workflow <code>agent()</code> calls inherit the session model (Opus) by default. The injected policy tells the orchestrator to pass <code>agentType: 'ds-flash'</code> / <code>'ds-pro'</code> (or <code>model: 'deepseek-v4-flash'</code>) to fan-out agents, so the bulk of the work lands on DeepSeek while orchestration and final verification stay on Opus.</p>
+</section>
+
+<!-- ═══════════════ CONFIG ═══════════════ -->
+<section id="config" class="container" aria-labelledby="config-heading">
+  <h2 id="config-heading" data-i18n="configTitle">Configuration</h2>
+  <div class="table-wrap" role="table" aria-label="Environment variables">
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="cfgHVar">Env var</th>
+          <th data-i18n="cfgHDefault">Default</th>
+          <th data-i18n="cfgHMeaning">Meaning</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>DEEPSEEK_API_KEY</code></td>
+          <td data-i18n="cfgR1Def">— (from .env)</td>
+          <td data-i18n="cfgR1Meaning">your DeepSeek key</td>
+        </tr>
+        <tr>
+          <td><code>DEEPSEEK_PROXY_PORT</code></td>
+          <td><code>8080</code></td>
+          <td data-i18n="cfgR2Meaning">port the proxy binds on 127.0.0.1</td>
+        </tr>
+        <tr>
+          <td><code>DEEPSEEK_MAIN_MODEL</code></td>
+          <td><code>claude-opus-4-8[1m]</code></td>
+          <td data-i18n="cfgR3Meaning">main/orchestrator model for claude-ds</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════ FAQ ═══════════════ -->
+<section id="faq" class="container" aria-labelledby="faq-heading">
+  <h2 id="faq-heading" data-i18n="faqTitle">FAQ</h2>
+
+  <details class="faq-item">
+    <summary data-i18n="faqQ1">Does my main agent really stay on my subscription?</summary>
+    <div class="faq-body" data-i18n="faqA1">Yes. <code>claude-*</code> requests are forwarded to <code>api.anthropic.com</code> with their headers untouched — the same OAuth token Claude Code already holds. The proxy never sees or needs an Anthropic API key.</div>
+  </details>
+
+  <details class="faq-item">
+    <summary data-i18n="faqQ2">Is this a fork or a patch of Claude Code?</summary>
+    <div class="faq-body" data-i18n="faqA2">No. It is a local proxy plus two standard <code>~/.claude/agents/*.md</code> files. Uninstall and everything is back to stock.</div>
+  </details>
+
+  <details class="faq-item">
+    <summary data-i18n="faqQ3">Will it break when Claude Code updates?</summary>
+    <div class="faq-body" data-i18n="faqA3">The subagent/model parts are official features. OAuth passthrough through a local proxy is <em>tolerated, not officially supported</em> — if an update ever changes auth handling, just run plain <code>claude</code>. Nothing here is destructive.</div>
+  </details>
+
+  <details class="faq-item">
+    <summary data-i18n="faqQ4">Does prompt caching still work?</summary>
+    <div class="faq-body" data-i18n="faqA4">Yes, per provider: Anthropic caches the main agent's context; DeepSeek caches within a subagent's loop. Caches do not cross the provider boundary (inherent, not a limitation of the proxy).</div>
+  </details>
+
+  <details class="faq-item">
+    <summary data-i18n="faqQ5">What about DeepSeek's count_tokens?</summary>
+    <div class="faq-body" data-i18n="faqA5">DeepSeek's Anthropic-compatible endpoint may not implement it, so the proxy synthesizes a rough estimate for <code>deepseek-*</code> routes — preflight never stalls.</div>
+  </details>
+
+  <details class="faq-item">
+    <summary data-i18n="faqQ6">How is OAuth passthrough handled?</summary>
+    <div class="faq-body" data-i18n="faqA6">The proxy forwards <code>claude-*</code> headers untouched to Anthropic. This is tolerated, not officially supported. If a Claude Code update changes auth, just use plain <code>claude</code> until things settle.</div>
+  </details>
+</section>
+
+<!-- ═══════════════ UNINSTALL / CONTRIBUTING / LICENSE ═══════════════ -->
+<section id="more" class="container" aria-labelledby="more-heading">
+  <h2 id="more-heading" data-i18n="moreTitle">Uninstall, Contribute &amp; License</h2>
+
+  <h3 data-i18n="uninstallTitle">Uninstall</h3>
+  <div class="code-block">
+    <div class="bar"><span data-i18n="uninstallCmdLabel">Shell</span><button class="copy-btn" data-i18n-title="copyBtn" title="Copy">Copy</button></div>
+    <pre><code>rm -f  ~/.local/bin/claude-ds ~/.local/bin/ds-proxy
+rm -rf ~/.claude/deepseek
+rm -f  ~/.claude/agents/ds-flash.md ~/.claude/agents/ds-pro.md</code></pre>
+  </div>
+
+  <h3 style="margin-top:2rem;" data-i18n="contribTitle">Contributing</h3>
+  <p data-i18n="contribText">Issues and PRs welcome — better installers (Homebrew, a systemd user unit), more provider presets, or a slash-command to toggle DeepSeek mid-session are all fair game. Keep the core dependency-free and the main-agent-on-subscription guarantee intact.</p>
+
+  <h3 style="margin-top:2rem;" data-i18n="licenseTitle">License</h3>
+  <p data-i18n="licenseText"><a href="https://github.com/CristhianKapelinski/claude-deepseek-subagents/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a> &copy; Cristhian Kapelinski.</p>
+</section>
+</main>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="site-footer container" role="contentinfo">
+  <p data-i18n="footerMade">Built with care. Zero dependencies — just a proxy and two agent files.</p>
+  <p><a href="https://github.com/CristhianKapelinski/claude-deepseek-subagents" target="_blank" rel="noopener">github.com/CristhianKapelinski/claude-deepseek-subagents</a></p>
+</footer>
+
+<!-- ── i18n dictionary & logic ───────────────────────────── -->
+<script>
+const I18N = {
+en: {
+  siteTitle: "claude-deepseek-subagents",
+  navInstall: "Install",
+  navHow: "How",
+  navWhy: "Why",
+  navConfig: "Config",
+  navFAQ: "FAQ",
+
+  heroBadge: "Senior judgment on intern-priced labor",
+  heroTitle: "Opus orchestrates on your subscription — DeepSeek does the grunt work.",
+  heroSubtitle: "A zero-dependency proxy that gives Claude Code native DeepSeek subagents. Opus on your plan, DeepSeek on its cheap API, in one session.",
+  analogyLabel: "The Analogy",
+  analogyBody: "You wouldn’t put ten $300k senior engineers on grunt work. You keep <strong>one</strong> sharp senior to plan and review, hand the legwork to cheap interns, and the senior checks it before it ships.",
+  analogySenior: "Opus is your senior",
+  analogySeniorDesc: "Runs on the Claude subscription you already pay for. It thinks, delegates, and verifies.",
+  analogyInterns: "DeepSeek v4 subagents are the interns",
+  analogyInternsDesc: "Fast, cheap, do the actual grinding under supervision. Full tool loop: read, grep, bash, edit.",
+  ctaGitHub: "View on GitHub",
+  ctaInstall: "Install in one command",
+
+  problemTitle: "The Problem",
+  problemP1: "Claude Code is brilliant — but every subagent it spawns (searching, reading dozens of files, mechanical edits, running tests) also burns <strong>Opus</strong>. That is like paying senior-engineer rates for intern work.",
+  problemP2: "On a Pro or Max plan, you hit your weekly usage limit fast. On API billing, you pay Opus prices for work a cheaper model would do just as well.",
+
+  howTitle: "The Key Differentiator",
+  howP1: "<code>ANTHROPIC_BASE_URL</code> is global, so the naive belief is “a proxy breaks my subscription.” <strong>This proxy only rewrites auth for <code>deepseek-*</code> requests.</strong> For <code>claude-*</code> requests it forwards Claude Code’s own headers <strong>untouched</strong> — so your subscription OAuth token reaches Anthropic exactly as if the proxy were not there.",
+  howHighlight: "Opus and DeepSeek run side by side in the same session — Opus on your plan, DeepSeek on its cheap API.",
+  archYou: "You + Opus",
+  archYouSub: "orchestrator",
+  archAnthropic: "Opus · your subscription",
+
+  whyTitle: "Why This Instead of the Alternatives",
+  whyIntro: "Every approach to using a cheaper model with Claude Code gives something up — except this one.",
+  tblHApproach: "Approach",
+  tblHMain: "Main agent",
+  tblHSub: "Subagents",
+  tblHSubs: "Keeps subscription",
+  tblHTools: "Subagents have tools",
+  tblHParts: "Extra moving parts",
+  tblR1Name: "Plain Claude Code",
+  tblR1Sub: "Opus 💸",
+  tblR1Parts: "none",
+  tblR2Name: "ANTHROPIC_BASE_URL → DeepSeek",
+  tblR2Main: "DeepSeek ❌",
+  tblR2Parts: "env only",
+  tblR3Name: "Full gateway / router",
+  tblR3Subs: "usually API billing",
+  tblR3Parts: "a gateway for all traffic",
+  tblR4Name: "MCP “ask DeepSeek” tool",
+  tblR4Sub: "a text call —",
+  tblR4Parts: "an MCP server",
+  tblR5Name: "→ this project",
+  tblR5Parts: "one ~90-line local proxy",
+
+  installTitle: "Install",
+  installCmdLabel: "One command",
+  installAfter: "Then drop your DeepSeek key (from <a href=\"https://platform.deepseek.com/\" target=\"_blank\" rel=\"noopener\">platform.deepseek.com</a>) into <code>~/.claude/deepseek/.env</code> (chmod 600):",
+  installReqs: "<strong>Requirements:</strong> Node.js 18+, curl, and <code>claude</code> (Claude Code) logged into your subscription.",
+
+  useTitle: "Use",
+  useCmdLabel: "Terminal",
+  useDesc: "Claude Code exactly as usual — except when the orchestrator delegates, the work runs on DeepSeek. Plain <code>claude</code> stays completely untouched. Switch anytime.",
+  useManager: "Watch it happen from <strong>another</strong> terminal:",
+  useMgrLabel: "Manager",
+  useWarning: "<strong>⚠ Warning:</strong> Never run <code>ds-proxy stop</code> or <code>ds-proxy restart</code> <strong>inside</strong> a <code>claude-ds</code> session — that session talks to the API <em>through</em> the proxy, so killing it drops its own connection. Manage the proxy from a normal terminal.",
+
+  runsTitle: "What Runs Where",
+  runsHModel: "Model",
+  runsHEndpoint: "Endpoint",
+  runsHBilled: "Billed to",
+  runsR1Role: "Main / orchestrator",
+  runsR1Bill: "your subscription",
+  runsR2Role: "ds-flash (default delegate)",
+  runsR2Bill: "DeepSeek API",
+  runsR3Role: "ds-pro (hard reasoning)",
+  runsR3Bill: "DeepSeek API",
+  runsOverride: "Change any model via the agent files’ <code>model:</code> line, or override the main with <code>DEEPSEEK_MAIN_MODEL=... claude-ds</code>.",
+
+  multiTitle: "Multi-Agent Workflows",
+  multiP1: "Workflow <code>agent()</code> calls inherit the session model (Opus) by default. The injected policy tells the orchestrator to pass <code>agentType: ‘ds-flash’</code> / <code>‘ds-pro’</code> (or <code>model: ‘deepseek-v4-flash’</code>) to fan-out agents, so the bulk of the work lands on DeepSeek while orchestration and final verification stay on Opus.",
+
+  configTitle: "Configuration",
+  cfgHVar: "Env var",
+  cfgHDefault: "Default",
+  cfgHMeaning: "Meaning",
+  cfgR1Def: "— (from .env)",
+  cfgR1Meaning: "your DeepSeek key",
+  cfgR2Meaning: "port the proxy binds on 127.0.0.1",
+  cfgR3Meaning: "main/orchestrator model for claude-ds",
+
+  faqTitle: "FAQ",
+  faqQ1: "Does my main agent really stay on my subscription?",
+  faqA1: "Yes. <code>claude-*</code> requests are forwarded to <code>api.anthropic.com</code> with their headers untouched — the same OAuth token Claude Code already holds. The proxy never sees or needs an Anthropic API key.",
+  faqQ2: "Is this a fork or a patch of Claude Code?",
+  faqA2: "No. It is a local proxy plus two standard <code>~/.claude/agents/*.md</code> files. Uninstall and everything is back to stock.",
+  faqQ3: "Will it break when Claude Code updates?",
+  faqA3: "The subagent/model parts are official features. OAuth passthrough through a local proxy is <em>tolerated, not officially supported</em> — if an update ever changes auth handling, just run plain <code>claude</code>. Nothing here is destructive.",
+  faqQ4: "Does prompt caching still work?",
+  faqA4: "Yes, per provider: Anthropic caches the main agent’s context; DeepSeek caches within a subagent’s loop. Caches do not cross the provider boundary (inherent, not a limitation of the proxy).",
+  faqQ5: "What about DeepSeek’s count_tokens?",
+  faqA5: "DeepSeek’s Anthropic-compatible endpoint may not implement it, so the proxy synthesizes a rough estimate for <code>deepseek-*</code> routes — preflight never stalls.",
+  faqQ6: "How is OAuth passthrough handled?",
+  faqA6: "The proxy forwards <code>claude-*</code> headers untouched to Anthropic. This is tolerated, not officially supported. If a Claude Code update changes auth, just use plain <code>claude</code> until things settle.",
+
+  moreTitle: "Uninstall, Contribute & License",
+  uninstallTitle: "Uninstall",
+  uninstallCmdLabel: "Shell",
+  contribTitle: "Contributing",
+  contribText: "Issues and PRs welcome — better installers (Homebrew, a systemd user unit), more provider presets, or a slash-command to toggle DeepSeek mid-session are all fair game. Keep the core dependency-free and the main-agent-on-subscription guarantee intact.",
+  licenseTitle: "License",
+  licenseText: "<a href=\"https://github.com/CristhianKapelinski/claude-deepseek-subagents/blob/main/LICENSE\" target=\"_blank\" rel=\"noopener\">MIT</a> © Cristhian Kapelinski.",
+
+  footerMade: "Built with care. Zero dependencies — just a proxy and two agent files.",
+  copyBtn: "Copy",
+  copyDone: "Copied!"
+},
+
+pt: {
+  siteTitle: "claude-deepseek-subagents",
+  navInstall: "Instalar",
+  navHow: "Como",
+  navWhy: "Por quê",
+  navConfig: "Config",
+  navFAQ: "FAQ",
+
+  heroBadge: "Julgamento sênior com preço de estagiário",
+  heroTitle: "Opus orquestra na sua assinatura — o DeepSeek faz o trabalho pesado.",
+  heroSubtitle: "Um proxy sem dependências que dá ao Claude Code subagentes nativos no DeepSeek. Opus no seu plano, DeepSeek na sua API barata, em uma única sessão.",
+  analogyLabel: "A Analogia",
+  analogyBody: "Você não colocaria dez engenheiros sêniores de R$ 1,5 mi/ano em trabalho braçal. Você mantém <strong>um</strong> sênior afiado para planejar e revisar, passa a parte pesada para estagiários baratos, e o sênior confere antes de entregar.",
+  analogySenior: "Opus é o seu sênior",
+  analogySeniorDesc: "Roda na assinatura do Claude que você já paga. Ele pensa, delega e verifica.",
+  analogyInterns: "Subagentes DeepSeek v4 são os estagiários",
+  analogyInternsDesc: "Rápidos, baratos, fazem o trabalho pesado sob supervisão. Ciclo completo de ferramentas: read, grep, bash, edit.",
+  ctaGitHub: "Ver no GitHub",
+  ctaInstall: "Instalar com um comando",
+
+  problemTitle: "O Problema",
+  problemP1: "O Claude Code é brilhante — mas cada subagente que ele cria (buscar, ler dezenas de arquivos, edições mecânicas, rodar testes) também consome o <strong>Opus</strong>. É como pagar salário de sênior para trabalho de estagiário.",
+  problemP2: "No plano Pro ou Max, você estoura o limite semanal rapidinho. Na cobrança por API, você paga preço de Opus por trabalho que um modelo mais barato faria igual.",
+
+  howTitle: "O Grande Diferenciador",
+  howP1: "<code>ANTHROPIC_BASE_URL</code> é global, então a crença ingênua é “um proxy quebra minha assinatura.” <strong>Este proxy só reescreve a autenticação para requisições <code>deepseek-*</code>.</strong> Para requisições <code>claude-*</code>, ele encaminha os headers do Claude Code <strong>intocados</strong> — então seu token OAuth da assinatura chega à Anthropic exatamente como se o proxy não existisse.",
+  howHighlight: "Opus e DeepSeek rodam lado a lado na mesma sessão — Opus no seu plano, DeepSeek na sua API barata.",
+  archYou: "Você + Opus",
+  archYouSub: "orquestrador",
+  archAnthropic: "Opus · sua assinatura",
+
+  whyTitle: "Por Que Isso em Vez das Alternativas",
+  whyIntro: "Toda abordagem para usar um modelo mais barato com o Claude Code sacrifica alguma coisa — menos esta.",
+  tblHApproach: "Abordagem",
+  tblHMain: "Agente principal",
+  tblHSub: "Subagentes",
+  tblHSubs: "Mantém assinatura",
+  tblHTools: "Subagentes têm ferramentas",
+  tblHParts: "Peças extras",
+  tblR1Name: "Claude Code puro",
+  tblR1Sub: "Opus 💸",
+  tblR1Parts: "nenhuma",
+  tblR2Name: "ANTHROPIC_BASE_URL → DeepSeek",
+  tblR2Main: "DeepSeek ❌",
+  tblR2Parts: "só env",
+  tblR3Name: "Gateway / roteador completo",
+  tblR3Subs: "geralmente cai em cobrança via API",
+  tblR3Parts: "um gateway para TODO o tráfego",
+  tblR4Name: "Ferramenta MCP “pergunte ao DeepSeek”",
+  tblR4Sub: "uma chamada de texto —",
+  tblR4Parts: "um servidor MCP",
+  tblR5Name: "→ este projeto",
+  tblR5Parts: "um proxy local de ~90 linhas",
+
+  installTitle: "Instalar",
+  installCmdLabel: "Um comando",
+  installAfter: "Depois coloque sua chave do DeepSeek (de <a href=\"https://platform.deepseek.com/\" target=\"_blank\" rel=\"noopener\">platform.deepseek.com</a>) em <code>~/.claude/deepseek/.env</code> (chmod 600):",
+  installReqs: "<strong>Requisitos:</strong> Node.js 18+, curl, e <code>claude</code> (Claude Code) logado na sua assinatura.",
+
+  useTitle: "Usar",
+  useCmdLabel: "Terminal",
+  useDesc: "Claude Code exatamente como sempre — só que quando o orquestrador delega, o trabalho roda no DeepSeek. O <code>claude</code> normal permanece intocado. Troque a qualquer momento.",
+  useManager: "Acompanhe ao vivo de <strong>outro</strong> terminal:",
+  useMgrLabel: "Gerenciador",
+  useWarning: "<strong>⚠ Atenção:</strong> Nunca execute <code>ds-proxy stop</code> ou <code>ds-proxy restart</code> <strong>dentro</strong> de uma sessão <code>claude-ds</code> — essa sessão fala com a API <em>através</em> do proxy, então derrubá-lo corta a própria conexão. Gerencie o proxy de um terminal normal.",
+
+  runsTitle: "O Que Roda Onde",
+  runsHModel: "Modelo",
+  runsHEndpoint: "Endpoint",
+  runsHBilled: "Cobrado em",
+  runsR1Role: "Principal / orquestrador",
+  runsR1Bill: "sua assinatura",
+  runsR2Role: "ds-flash (delegado padrão)",
+  runsR2Bill: "API DeepSeek",
+  runsR3Role: "ds-pro (raciocínio pesado)",
+  runsR3Bill: "API DeepSeek",
+  runsOverride: "Altere qualquer modelo pela linha <code>model:</code> nos arquivos de agente, ou substitua o principal com <code>DEEPSEEK_MAIN_MODEL=... claude-ds</code>.",
+
+  multiTitle: "Fluxos Multi-Agente",
+  multiP1: "Chamadas de workflow <code>agent()</code> herdam o modelo da sessão (Opus) por padrão. A política injetada instrui o orquestrador a passar <code>agentType: ‘ds-flash’</code> / <code>‘ds-pro’</code> (ou <code>model: ‘deepseek-v4-flash’</code>) para os agentes de fan-out, fazendo a massa do trabalho cair no DeepSeek enquanto orquestração e verificação final ficam no Opus.",
+
+  configTitle: "Configuração",
+  cfgHVar: "Variável",
+  cfgHDefault: "Padrão",
+  cfgHMeaning: "Significado",
+  cfgR1Def: "— (do .env)",
+  cfgR1Meaning: "sua chave do DeepSeek",
+  cfgR2Meaning: "porta do proxy em 127.0.0.1",
+  cfgR3Meaning: "modelo principal/orquestrador do claude-ds",
+
+  faqTitle: "Perguntas Frequentes",
+  faqQ1: "Meu agente principal realmente fica na minha assinatura?",
+  faqA1: "Sim. Requisições <code>claude-*</code> são encaminhadas para <code>api.anthropic.com</code> com os headers intactos — o mesmo token OAuth que o Claude Code já possui. O proxy nunca vê nem precisa de uma chave de API da Anthropic.",
+  faqQ2: "Isso é um fork ou patch do Claude Code?",
+  faqA2: "Não. É um proxy local mais dois arquivos padrão <code>~/.claude/agents/*.md</code>. Desinstale e tudo volta ao original.",
+  faqQ3: "Vai quebrar quando o Claude Code atualizar?",
+  faqA3: "As partes de subagente/modelo são funcionalidades oficiais. O encaminhamento OAuth via proxy local é <em>tolerado, não oficialmente suportado</em> — se uma atualização mudar a autenticação, basta usar o <code>claude</code> normal. Nada aqui é destrutivo.",
+  faqQ4: "O cache de prompt ainda funciona?",
+  faqA4: "Sim, por provedor: a Anthropic faz cache do contexto do agente principal; o DeepSeek faz cache dentro do ciclo do subagente. Os caches não cruzam a fronteira entre provedores (inerente, não uma limitação do proxy).",
+  faqQ5: "E o count_tokens do DeepSeek?",
+  faqA5: "O endpoint compatível com Anthropic do DeepSeek pode não implementá-lo, então o proxy sintetiza uma estimativa para rotas <code>deepseek-*</code> — o preflight nunca trava.",
+  faqQ6: "Como o encaminhamento OAuth é tratado?",
+  faqA6: "O proxy encaminha headers <code>claude-*</code> intactos para a Anthropic. Isso é tolerado, não oficialmente suportado. Se uma atualização do Claude Code mudar a autenticação, use o <code>claude</code> normal até as coisas se estabilizarem.",
+
+  moreTitle: "Desinstalar, Contribuir & Licença",
+  uninstallTitle: "Desinstalar",
+  uninstallCmdLabel: "Shell",
+  contribTitle: "Contribuindo",
+  contribText: "Issues e PRs são bem-vindos — instaladores melhores (Homebrew, unit do systemd), mais presets de provedores, ou um slash-command para alternar o DeepSeek no meio da sessão são todas ideias válidas. Mantenha o core sem dependências e a garantia de assinatura do agente principal intacta.",
+  licenseTitle: "Licença",
+  licenseText: "<a href=\"https://github.com/CristhianKapelinski/claude-deepseek-subagents/blob/main/LICENSE\" target=\"_blank\" rel=\"noopener\">MIT</a> © Cristhian Kapelinski.",
+
+  footerMade: "Feito com cuidado. Zero dependências — só um proxy e dois arquivos de agente.",
+  copyBtn: "Copiar",
+  copyDone: "Copiado!"
+},
+
+es: {
+  siteTitle: "claude-deepseek-subagents",
+  navInstall: "Instalar",
+  navHow: "Cómo",
+  navWhy: "Por qué",
+  navConfig: "Config",
+  navFAQ: "FAQ",
+
+  heroBadge: "Criterio sénior a precio de becario",
+  heroTitle: "Opus orquesta en tu suscripción — DeepSeek hace el trabajo pesado.",
+  heroSubtitle: "Un proxy sin dependencias que le da a Claude Code subagentes nativos en DeepSeek. Opus en tu plan, DeepSeek en su API barata, en una sola sesión.",
+  analogyLabel: "La Analogía",
+  analogyBody: "No pondrías a diez ingenieros sénior de $300k al año a hacer trabajo mecánico. Mantienes a <strong>un</strong> sénior brillante para planificar y revisar, delegas lo pesado a becarios baratos, y el sénior lo revisa antes de entregar.",
+  analogySenior: "Opus es tu sénior",
+  analogySeniorDesc: "Funciona con la suscripción de Claude que ya pagas. Piensa, delega y verifica.",
+  analogyInterns: "Los subagentes DeepSeek v4 son los becarios",
+  analogyInternsDesc: "Rápidos, baratos, hacen el trabajo pesado bajo supervisión. Ciclo completo de herramientas: read, grep, bash, edit.",
+  ctaGitHub: "Ver en GitHub",
+  ctaInstall: "Instalar con un comando",
+
+  problemTitle: "El Problema",
+  problemP1: "Claude Code es brillante — pero cada subagente que genera (buscar, leer decenas de archivos, ediciones mecánicas, ejecutar pruebas) también consume <strong>Opus</strong>. Es como pagar tarifa de sénior por trabajo de becario.",
+  problemP2: "En un plan Pro o Max, alcanzas el límite semanal rápido. Con facturación por API, pagas precios de Opus por trabajo que un modelo más barato haría igual de bien.",
+
+  howTitle: "El Diferenciador Clave",
+  howP1: "<code>ANTHROPIC_BASE_URL</code> es global, así que la creencia ingenua es “un proxy rompe mi suscripción.” <strong>Este proxy solo reescribe la autenticación para solicitudes <code>deepseek-*</code>.</strong> Para solicitudes <code>claude-*</code>, reenvía los encabezados de Claude Code <strong>intactos</strong> — así tu token OAuth de suscripción llega a Anthropic exactamente como si el proxy no existiera.",
+  howHighlight: "Opus y DeepSeek funcionan lado a lado en la misma sesión — Opus en tu plan, DeepSeek en su API barata.",
+  archYou: "Tú + Opus",
+  archYouSub: "orquestador",
+  archAnthropic: "Opus · tu suscripción",
+
+  whyTitle: "Por Qué Esto en Vez de las Alternativas",
+  whyIntro: "Cada enfoque para usar un modelo más barato con Claude Code sacrifica algo — excepto este.",
+  tblHApproach: "Enfoque",
+  tblHMain: "Agente principal",
+  tblHSub: "Subagentes",
+  tblHSubs: "Mantiene suscripción",
+  tblHTools: "Subagentes con herramientas",
+  tblHParts: "Piezas extra",
+  tblR1Name: "Claude Code puro",
+  tblR1Sub: "Opus 💸",
+  tblR1Parts: "ninguna",
+  tblR2Name: "ANTHROPIC_BASE_URL → DeepSeek",
+  tblR2Main: "DeepSeek ❌",
+  tblR2Parts: "solo env",
+  tblR3Name: "Gateway / enrutador completo",
+  tblR3Subs: "generalmente cae en facturación por API",
+  tblR3Parts: "un gateway para TODO el tráfico",
+  tblR4Name: "Herramienta MCP “preguntar a DeepSeek”",
+  tblR4Sub: "una llamada de texto —",
+  tblR4Parts: "un servidor MCP",
+  tblR5Name: "→ este proyecto",
+  tblR5Parts: "un proxy local de ~90 líneas",
+
+  installTitle: "Instalar",
+  installCmdLabel: "Un comando",
+  installAfter: "Luego coloca tu clave de DeepSeek (de <a href=\"https://platform.deepseek.com/\" target=\"_blank\" rel=\"noopener\">platform.deepseek.com</a>) en <code>~/.claude/deepseek/.env</code> (chmod 600):",
+  installReqs: "<strong>Requisitos:</strong> Node.js 18+, curl, y <code>claude</code> (Claude Code) autenticado en tu suscripción.",
+
+  useTitle: "Usar",
+  useCmdLabel: "Terminal",
+  useDesc: "Claude Code exactamente como siempre — solo que cuando el orquestador delega, el trabajo se ejecuta en DeepSeek. <code>claude</code> normal permanece intacto. Cambia cuando quieras.",
+  useManager: "Míralo en vivo desde <strong>otra</strong> terminal:",
+  useMgrLabel: "Gestor",
+  useWarning: "<strong>⚠ Atención:</strong> Nunca ejecutes <code>ds-proxy stop</code> o <code>ds-proxy restart</code> <strong>dentro</strong> de una sesión <code>claude-ds</code> — esa sesión habla con la API <em>a través</em> del proxy, así que matarlo corta su propia conexión. Gestiona el proxy desde una terminal normal.",
+
+  runsTitle: "Qué Corre Dónde",
+  runsHModel: "Modelo",
+  runsHEndpoint: "Endpoint",
+  runsHBilled: "Facturado a",
+  runsR1Role: "Principal / orquestador",
+  runsR1Bill: "tu suscripción",
+  runsR2Role: "ds-flash (delegado por defecto)",
+  runsR2Bill: "API DeepSeek",
+  runsR3Role: "ds-pro (razonamiento pesado)",
+  runsR3Bill: "API DeepSeek",
+  runsOverride: "Cambia cualquier modelo mediante la línea <code>model:</code> en los archivos de agente, o anula el principal con <code>DEEPSEEK_MAIN_MODEL=... claude-ds</code>.",
+
+  multiTitle: "Flujos Multi-Agente",
+  multiP1: "Las llamadas de workflow <code>agent()</code> heredan el modelo de sesión (Opus) por defecto. La política inyectada indica al orquestador pasar <code>agentType: ‘ds-flash’</code> / <code>‘ds-pro’</code> (o <code>model: ‘deepseek-v4-flash’</code>) a los agentes de expansión, haciendo que el grueso del trabajo recaiga en DeepSeek mientras la orquestación y verificación final permanecen en Opus.",
+
+  configTitle: "Configuración",
+  cfgHVar: "Variable",
+  cfgHDefault: "Por defecto",
+  cfgHMeaning: "Significado",
+  cfgR1Def: "— (del .env)",
+  cfgR1Meaning: "tu clave de DeepSeek",
+  cfgR2Meaning: "puerto del proxy en 127.0.0.1",
+  cfgR3Meaning: "modelo principal/orquestador de claude-ds",
+
+  faqTitle: "Preguntas Frecuentes",
+  faqQ1: "¿Mi agente principal realmente se queda en mi suscripción?",
+  faqA1: "Sí. Las solicitudes <code>claude-*</code> se reenvían a <code>api.anthropic.com</code> con sus encabezados intactos — el mismo token OAuth que Claude Code ya tiene. El proxy nunca ve ni necesita una clave de API de Anthropic.",
+  faqQ2: "¿Es esto un fork o parche de Claude Code?",
+  faqA2: "No. Es un proxy local más dos archivos estándar <code>~/.claude/agents/*.md</code>. Desinstala y todo vuelve a su estado original.",
+  faqQ3: "¿Se romperá cuando Claude Code se actualice?",
+  faqA3: "Las partes de subagente/modelo son funcionalidades oficiales. El reenvío OAuth a través de un proxy local es <em>tolerado, no oficialmente soportado</em> — si una actualización cambia la autenticación, solo usa <code>claude</code> normal. Nada aquí es destructivo.",
+  faqQ4: "¿El caché de prompts sigue funcionando?",
+  faqA4: "Sí, por proveedor: Anthropic almacena en caché el contexto del agente principal; DeepSeek almacena en caché dentro del ciclo del subagente. Los cachés no cruzan la frontera entre proveedores (inherente, no una limitación del proxy).",
+  faqQ5: "¿Y el count_tokens de DeepSeek?",
+  faqA5: "El endpoint compatible con Anthropic de DeepSeek podría no implementarlo, así que el proxy sintetiza una estimación aproximada para rutas <code>deepseek-*</code> — el preflight nunca se bloquea.",
+  faqQ6: "¿Cómo se maneja el reenvío OAuth?",
+  faqA6: "El proxy reenvía los encabezados <code>claude-*</code> intactos a Anthropic. Esto es tolerado, no oficialmente soportado. Si una actualización de Claude Code cambia la autenticación, usa <code>claude</code> normal hasta que las cosas se estabilicen.",
+
+  moreTitle: "Desinstalar, Contribuir y Licencia",
+  uninstallTitle: "Desinstalar",
+  uninstallCmdLabel: "Shell",
+  contribTitle: "Contribuir",
+  contribText: "Issues y PRs son bienvenidos — mejores instaladores (Homebrew, unit de systemd), más presets de proveedores, o un slash-command para alternar DeepSeek a mitad de sesión son todas ideas válidas. Mantén el core sin dependencias y la garantía de suscripción del agente principal intacta.",
+  licenseTitle: "Licencia",
+  licenseText: "<a href=\"https://github.com/CristhianKapelinski/claude-deepseek-subagents/blob/main/LICENSE\" target=\"_blank\" rel=\"noopener\">MIT</a> © Cristhian Kapelinski.",
+
+  footerMade: "Hecho con cuidado. Cero dependencias — solo un proxy y dos archivos de agente.",
+  copyBtn: "Copiar",
+  copyDone: "¡Copiado!"
+}
+};
+
+/* ── i18n runtime ──────────────────────────────────────── */
+function resolveLang() {
+  // query string ?lang=en|pt|es
+  const q = new URLSearchParams(location.search).get('lang');
+  if (q && I18N[q]) return q;
+  // hash #lang=.. or #pt / #es
+  const h = location.hash.replace(/^#/, '');
+  if (h === 'pt' || h === 'es') return h;
+  if (h.startsWith('lang=')) { const v = h.slice(5); if (I18N[v]) return v; }
+  // localStorage
+  try { const s = localStorage.getItem('claude-ds-subagents-lang'); if (s && I18N[s]) return s; } catch(e){}
+  return 'en';
+}
+
+function setLang(lang) {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (I18N[lang] && I18N[lang][key]) el.innerHTML = I18N[lang][key];
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if (I18N[lang] && I18N[lang][key]) el.setAttribute('title', I18N[lang][key]);
+  });
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    const match = btn.getAttribute('data-lang') === lang;
+    btn.classList.toggle('active', match);
+    btn.setAttribute('aria-checked', match ? 'true' : 'false');
+  });
+  try { localStorage.setItem('claude-ds-subagents-lang', lang); } catch(e){}
+}
+
+/* ── copy buttons ──────────────────────────────────────── */
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const code = btn.closest('.code-block').querySelector('pre').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      const lang = document.documentElement.lang || 'en';
+      btn.textContent = I18N[lang]?.copyDone || 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = I18N[lang]?.copyBtn || 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    }).catch(() => {});
+  });
+});
+
+/* ── init ──────────────────────────────────────────────── */
+const LANG = resolveLang();
+setLang(LANG);
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => setLang(btn.getAttribute('data-lang')));
+});
+</script>
+</body>
+</html>
