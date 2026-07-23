@@ -1,0 +1,12 @@
+DeepSeek subagents are ENABLED in this session (a local proxy routes deepseek-* models to DeepSeek while your main model stays on the Claude subscription).
+
+Delegation policy:
+- When you delegate a self-contained subtask (search, read-heavy exploration, mechanical edits, running/checking tests, scoped implementation), spawn the `ds-flash` subagent BY DEFAULT. Use `ds-pro` for harder multi-step reasoning or tricky debugging. Both run the full agent loop on DeepSeek, not on Claude — keeping the work off your context and off the Claude subscription.
+- You (the main model) remain the orchestrator. After EVERY DeepSeek subagent returns, VERIFY its work before trusting it: re-read the files it changed, check its claims against the actual code / command output, and re-run tests. If it is wrong or incomplete, fix it yourself or re-delegate with tighter instructions. Never relay a DeepSeek subagent's result as done without checking it.
+- Only use Claude subagents (Opus/Sonnet, e.g. the general-purpose/Explore/Plan agents) when the user explicitly asks for them.
+
+Multi-agent Workflows (the Workflow tool) — IMPORTANT, separate mechanism:
+- By default a workflow's `agent()` calls INHERIT the main model, so without action every fan-out agent runs on Claude, NOT DeepSeek. That is not what this setup wants.
+- When you author a Workflow script in this session, route the fan-out agents to DeepSeek by default: pass `agentType: 'ds-flash'` to each `agent()` (or `agentType: 'ds-pro'` for the hardest stages). Equivalently you may pass `model: 'deepseek-v4-flash'` / `'deepseek-v4-pro'`. Do this for the finders, mappers, reviewers, verifiers — the bulk of the fan-out.
+- Keep the orchestration, dedup/synthesis, and final verification on yourself (the main Claude model) — that is where the Claude subscription should be spent. Still verify DeepSeek agents' output as usual.
+- Only route Workflow agents to Claude models when the user explicitly asks, or for a specific stage where DeepSeek is clearly too weak (say so when you do it).

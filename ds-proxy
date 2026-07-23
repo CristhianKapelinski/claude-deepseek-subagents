@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Manage the DeepSeek routing proxy — start | stop | restart | status | log
+#
+# IMPORTANT: run this from a NORMAL terminal (or plain `claude`), NEVER from inside
+# a `claude-ds` session. That session talks to the API *through* this proxy, so
+# stopping/restarting it here would cut that session's own connection (ConnectionRefused).
+set -euo pipefail
+
+DS_DIR="$HOME/.claude/deepseek"
+PORT="${DEEPSEEK_PROXY_PORT:-8080}"
+HEALTH="http://127.0.0.1:${PORT}/health"
+LOG="$DS_DIR/proxy.log"
+
+pid_on_port() { lsof -ti "tcp:${PORT}" 2>/dev/null || true; }
+is_up() { curl -sf --max-time 1 "$HEALTH" >/dev/null 2>&1; }
+
+start() {
+  if is_up; then echo "already up (pid $(pid_on_port)) on :$PORT"; return 0; fi
+  DEEPSEEK_PROXY_PORT="$PORT" nohup node "$DS_DIR/proxy.mjs" > "$LOG" 2>&1 &
+  disown 2>/dev/null || true
+  for _ in $(seq 1 80); do is_up && break; done
+  if is_up; then echo "started (pid $(pid_on_port)) on :$PORT"; else echo "FAILED to start; see $LOG" >&2; tail -n 5 "$LOG" >&2 || true; return 1; fi
+}
+stop() {
+  local p; p="$(pid_on_port)"
+  if [ -z "$p" ]; then echo "not running on :$PORT"; return 0; fi
+  kill $p 2>/dev/null || true
+  for _ in $(seq 1 80); do is_up || break; done
+  echo "stopped (was pid $p)"
+}
+status() {
+  if is_up; then echo "UP   pid $(pid_on_port) on :$PORT   (key: $(grep -q '^DEEPSEEK_API_KEY=..' "$DS_DIR/.env" && echo set || echo MISSING))";
+  else echo "DOWN on :$PORT"; fi
+}
+
+case "${1:-status}" in
+  start)   start ;;
+  stop)    stop ;;
+  restart) stop; start ;;
+  status)  status ;;
+  log)     tail -n "${2:-40}" -f "$LOG" ;;
+  *) echo "usage: ds-proxy {start|stop|restart|status|log [N]}" >&2; exit 2 ;;
+esac

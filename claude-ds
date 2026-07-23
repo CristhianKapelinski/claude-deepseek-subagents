@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Launch Claude Code with DeepSeek-powered subagents.
+#   - Main model stays on your Claude subscription (OAuth passed through the proxy).
+#   - Subagents named ds-flash / ds-pro run on DeepSeek.
+# Plain `claude` is untouched; use this launcher only when you want DeepSeek subagents.
+set -euo pipefail
+
+DS_DIR="$HOME/.claude/deepseek"
+PORT="${DEEPSEEK_PROXY_PORT:-8080}"
+HEALTH="http://127.0.0.1:${PORT}/health"
+
+is_up() { curl -sf --max-time 1 "$HEALTH" >/dev/null 2>&1; }
+
+if ! is_up; then
+  echo "[claude-ds] starting DeepSeek proxy on 127.0.0.1:${PORT}..." >&2
+  DEEPSEEK_PROXY_PORT="$PORT" nohup node "$DS_DIR/proxy.mjs" >"$DS_DIR/proxy.log" 2>&1 &
+  for _ in $(seq 1 40); do is_up && break; sleep 0.25; done
+  if ! is_up; then
+    echo "[claude-ds] proxy failed to start; see $DS_DIR/proxy.log" >&2
+    exit 1
+  fi
+fi
+
+# Point Claude Code at the proxy. Do NOT set ANTHROPIC_AUTH_TOKEN / ANTHROPIC_API_KEY
+# so Claude Code falls through to your subscription OAuth token, which the proxy
+# forwards untouched for claude-* requests.
+export ANTHROPIC_BASE_URL="http://127.0.0.1:${PORT}"
+
+# Pin the main agent to Opus 4.8 with 1M context (override via DEEPSEEK_MAIN_MODEL).
+# Subagents ds-flash/ds-pro stay on DeepSeek regardless (pinned in their frontmatter).
+exec claude --model "${DEEPSEEK_MAIN_MODEL:-claude-opus-4-8[1m]}" --append-system-prompt "$(cat "$DS_DIR/policy.txt")" "$@"
