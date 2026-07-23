@@ -37,20 +37,22 @@ fetch() {
   fi
 }
 
-say "Installing proxy, launcher and manager into $DS_DIR"
-fetch proxy.mjs  "$DS_DIR/proxy.mjs"
-fetch claude-ds  "$DS_DIR/claude-ds"
-fetch ds-proxy   "$DS_DIR/ds-proxy"
-fetch policy.txt "$DS_DIR/policy.txt"
-chmod +x "$DS_DIR/claude-ds" "$DS_DIR/ds-proxy"
+say "Installing proxy, launchers and manager into $DS_DIR"
+fetch proxy.mjs       "$DS_DIR/proxy.mjs"
+fetch claude-ds       "$DS_DIR/claude-ds"
+fetch claude-deepseek "$DS_DIR/claude-deepseek"
+fetch ds-proxy        "$DS_DIR/ds-proxy"
+fetch policy.txt      "$DS_DIR/policy.txt"
+chmod +x "$DS_DIR/claude-ds" "$DS_DIR/claude-deepseek" "$DS_DIR/ds-proxy"
 
 say "Installing named subagents into $AGENTS"
 fetch agents/ds-flash.md "$AGENTS/ds-flash.md"
 fetch agents/ds-pro.md   "$AGENTS/ds-pro.md"
 
 say "Linking launchers into $BIN"
-ln -sf "$DS_DIR/claude-ds" "$BIN/claude-ds"
-ln -sf "$DS_DIR/ds-proxy"  "$BIN/ds-proxy"
+ln -sf "$DS_DIR/claude-ds"       "$BIN/claude-ds"
+ln -sf "$DS_DIR/claude-deepseek" "$BIN/claude-deepseek"
+ln -sf "$DS_DIR/ds-proxy"        "$BIN/ds-proxy"
 
 # DeepSeek key
 if [ ! -f "$DS_DIR/.env" ]; then
@@ -72,8 +74,9 @@ case ":$PATH:" in *":$BIN:"*) : ;; *) warn "$BIN is not on your PATH. Add:  expo
 cat <<'EOF'
 
 Usage:
-  claude-ds              # Claude Code — main model on your subscription, subagents on DeepSeek
-  ds-proxy status|log    # inspect the router (run from a NORMAL terminal, never inside claude-ds)
+  claude-ds              # main model on your subscription, subagents on DeepSeek
+  claude-deepseek        # EVERYTHING on DeepSeek (main + subagents), subscription untouched
+  ds-proxy status|log    # inspect the router (run from a NORMAL terminal, never inside a session)
 
 The main agent runs Opus 4.8 (1M) on your Claude subscription. When it delegates,
 it spawns the ds-flash / ds-pro subagents, which run the full agent loop on DeepSeek.

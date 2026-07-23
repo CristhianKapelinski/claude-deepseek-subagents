@@ -8,7 +8,10 @@
   <img src="https://img.shields.io/badge/dependencies-0-brightgreen" alt="zero deps">
   <img src="https://img.shields.io/badge/install-one%20command-fb923c" alt="one command">
   <a href="#contributing"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs welcome"></a>
+  <a href="https://cristhiankapelinski.github.io/claude-deepseek-subagents/"><img src="https://img.shields.io/badge/website-EN%20·%20PT%20·%20ES-6366f1" alt="website"></a>
 </p>
+
+<p align="center"><a href="https://cristhiankapelinski.github.io/claude-deepseek-subagents/"><b>🌐 Full site — English · Português · Español</b></a></p>
 
 <h1 align="center">claude-deepseek-subagents</h1>
 
@@ -111,6 +114,16 @@ ds-proxy log         # live — every call prints  model -> DEEPSEEK | anthropic
 | `ds-pro` (hard reasoning) | `deepseek-v4-pro` | DeepSeek | DeepSeek API |
 
 Change any of these by editing the `model:` line in the agent files, or override the main with `DEEPSEEK_MAIN_MODEL=... claude-ds`.
+
+## Run everything on DeepSeek (optional)
+
+Sometimes you want the whole session on DeepSeek — main agent included — to spend nothing on your subscription:
+
+```bash
+claude-deepseek        # main = deepseek-v4-pro, subagents = deepseek-v4-flash
+```
+
+It routes through the same proxy (so `count_tokens` is handled and the key comes from your `.env`). Override the models with `DEEPSEEK_MODEL=...` and `DEEPSEEK_SUBAGENT_MODEL=...`. Your Claude subscription is not touched at all. Use `claude-ds` when you want Opus orchestrating instead.
 
 ## Multi-agent workflows
 

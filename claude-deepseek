@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Launch Claude Code with EVERYTHING on DeepSeek (main agent + subagents).
+# Your Claude subscription is not used at all. Routed through the local proxy so
+# count_tokens is handled and the key comes from ~/.claude/deepseek/.env.
+#
+#   main model     : $DEEPSEEK_MODEL           (default deepseek-v4-pro)
+#   subagent model : $DEEPSEEK_SUBAGENT_MODEL  (default deepseek-v4-flash)
+#
+# For the mixed setup (main Opus on your subscription + DeepSeek subagents) use `claude-ds` instead.
+set -euo pipefail
+
+DS_DIR="$HOME/.claude/deepseek"
+PORT="${DEEPSEEK_PROXY_PORT:-8080}"
+HEALTH="http://127.0.0.1:${PORT}/health"
+
+is_up() { curl -sf --max-time 1 "$HEALTH" >/dev/null 2>&1; }
+
+if ! is_up; then
+  echo "[claude-deepseek] starting DeepSeek proxy on 127.0.0.1:${PORT}..." >&2
+  DEEPSEEK_PROXY_PORT="$PORT" nohup node "$DS_DIR/proxy.mjs" >"$DS_DIR/proxy.log" 2>&1 &
+  disown 2>/dev/null || true
+  for _ in $(seq 1 40); do is_up && break; done
+  is_up || { echo "[claude-deepseek] proxy failed to start; see $DS_DIR/proxy.log" >&2; exit 1; }
+fi
+
+# All traffic to the proxy; it swaps in the DeepSeek key for deepseek-* models.
+export ANTHROPIC_BASE_URL="http://127.0.0.1:${PORT}"
+export CLAUDE_CODE_SUBAGENT_MODEL="${DEEPSEEK_SUBAGENT_MODEL:-deepseek-v4-flash}"
+
+exec claude --model "${DEEPSEEK_MODEL:-deepseek-v4-pro}" "$@"
